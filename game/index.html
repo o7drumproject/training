@@ -140,6 +140,17 @@
   .actions{ display:flex; justify-content:center; gap:10px; flex-wrap:wrap; }
   .big{ padding:14px 34px; font-size:17px; }
 
+  /* ---------- Stars ---------- */
+  .stars{ display:inline-flex; gap:1px; font-size:17px; line-height:1; letter-spacing:0; -webkit-text-fill-color:initial; }
+  .stars .on{ color:#E2A922; -webkit-text-fill-color:#E2A922; }
+  .stars .off{ color:#CFCFCF; -webkit-text-fill-color:#CFCFCF; }
+  .stars.big{ display:flex; justify-content:center; gap:6px; font-size:34px; margin-top:6px; }
+  .stars.big span{ animation:star-pop .4s ease both; }
+  .stars.big span:nth-child(2){ animation-delay:.15s; } .stars.big span:nth-child(3){ animation-delay:.3s; }
+  @keyframes star-pop{ from{ transform:scale(0); opacity:0; } 70%{ transform:scale(1.25); } }
+  .win-hint{ font-size:13.5px; color:#666; }
+  .stage-stars{ font-weight:900; color:#B8860B; }
+
   /* ---------- Tutorial ---------- */
   .help-link{ display:block; margin:-12px auto 22px; background:none; border:none; color:var(--accent); -webkit-text-fill-color:var(--accent);
     font-weight:900; font-size:15px; text-decoration:underline; text-underline-offset:3px; cursor:pointer; padding:6px; }
@@ -424,6 +435,14 @@
   try{ var raw = localStorage.getItem(KEY); if(raw){ progress = JSON.parse(raw) || progress; progress.done = progress.done || {}; } }catch(e){}
   function save(){ try{ localStorage.setItem(KEY, JSON.stringify(progress)); }catch(e){} }
   function isDone(lv){ return !!progress.done[lv.id]; }
+  // Stars: 3 = first try, 2 = 2-3 tries, 1 = 4 or more. The best result is kept.
+  function starsFor(attempts){ return attempts <= 1 ? 3 : attempts <= 3 ? 2 : 1; }
+  function getStars(lv){
+    var d = progress.done[lv.id]; if(!d) return 0;
+    if(typeof d === 'object'){ if(d.stars) return d.stars; if(d.tries) return starsFor(d.tries); }
+    return 1;
+  }
+  function starsHTML(n, cls){ var s = ''; for(var i=1;i<=3;i++) s += '<span class="'+(i <= n ? 'on' : 'off')+'">★</span>'; return '<span class="stars '+(cls||'')+'" aria-label="'+n+' of 3 stars">'+s+'</span>'; }
   function isOpen(lv){ var list = levelsOf(lv.section), i = list.indexOf(lv); return i === 0 || isDone(list[i-1]); }
 
   /* ---------------- Badges (unique to the game) ---------------- */
@@ -579,7 +598,9 @@
     var sec = SECTIONS.filter(function(x){ return x.key === currentSection; })[0], st = currentStage;
     var levels = stageLevels(currentSection, st), complete = stageComplete(currentSection, st);
     document.getElementById('stageTitle').textContent = 'Stage ' + st;
-    document.getElementById('stageSub').textContent = sec.label + ' · ' + levels.filter(isDone).length + ' / ' + STAGE_SIZE + ' levels' + (complete ? ' · complete' : '');
+    var starTotal = levels.reduce(function(a, lv){ return a + getStars(lv); }, 0);
+    document.getElementById('stageSub').innerHTML = sec.label + ' · ' + levels.filter(isDone).length + ' / ' + STAGE_SIZE + ' levels' + (complete ? ' · complete' : '') +
+      '<br><span class="stage-stars">★ ' + starTotal + ' / ' + (STAGE_SIZE * 3) + ' stars</span>';
     var list = document.getElementById('levelList'); list.innerHTML = '';
     var shelf = document.getElementById('badgeShelf'); shelf.innerHTML = '';
     if(!levels.length){
@@ -600,7 +621,7 @@
         b.className = 'level-card ' + (done ? 'done' : open ? 'open' : 'locked');
         b.innerHTML = '<span class="level-num">'+lv.n+'</span><span class="level-text"><div class="level-name">'+lv.name+'</div>' +
           '<div class="level-meta">'+lv.drum+' · '+lv.bars+(lv.bars > 1 ? ' bars' : ' bar')+(lv.mode === 'listen' ? ' · listening' : '')+'</div></span>' +
-          '<span class="level-state">'+(done ? '✓ Done' : open ? 'Play' : '🔒')+'</span>';
+          '<span class="level-state">'+(done ? starsHTML(getStars(lv)) : open ? 'Play' : '🔒')+'</span>';
         if(open) b.addEventListener('click', function(){ startLevel(lv); }); else b.disabled = true;
         list.appendChild(b);
       })(lv);
@@ -709,17 +730,19 @@
       if(h === 'R' || h === 'L'){ c.innerHTML = '<span class="cell-hand" aria-hidden="true">'+h+'</span>'; }
     });
     document.getElementById('checkBtn').disabled = true; document.getElementById('hintBtn').hidden = true;
-    var first = !isDone(cur);
-    progress.done[cur.id] = { at: Date.now(), tries: tries + 1 }; save();
+    var first = !isDone(cur), attempts = tries + 1, earned = starsFor(attempts), best = Math.max(getStars(cur), earned);
+    progress.done[cur.id] = { at: Date.now(), tries: attempts, stars: best }; save();
     setFeedback('good', '<strong>Correct!</strong> ' + (cur.mode === 'listen' ? 'You heard it right.' : 'That’s ' + cur.name + '.'));
     play(cur.pattern, cur.drum, cur.bpm, gridEl, null, null, cur.reference, cur.referenceDrum, cur.winLoops);
     setTimeout(function(){
-      document.getElementById('winBadge').innerHTML = badgeSVG(cur.badge, cur.n);
+      document.getElementById('winBadge').innerHTML = badgeSVG(cur.badge, cur.n) + starsHTML(earned, 'big');
       document.getElementById('winTitle').textContent = first ? 'Badge unlocked!' : 'Well played again!';
       document.getElementById('winText').innerHTML = (cur.mode === 'listen' ? 'You wrote the rhythm you heard correctly' : 'You wrote <b>' + cur.name + '</b> correctly') +
         (tries === 0 ? ' on your first try.' : ' in ' + (tries+1) + ' tries.') +
         (cur.pattern.some(function(v){ return v === 'R' || v === 'L'; }) ? '<br>The hands (R/L) are now shown on the grid.' : '') +
-        '<br>You earned the <b>' + cur.badge.title + '</b> badge.';
+        (first ? '<br>You earned the <b>' + cur.badge.title + '</b> badge.' : '') +
+        (earned < 3 ? '<br><span class="win-hint">Play this level again any time to earn ' + (earned + 1) + ' stars.</span>' : '<br><span class="win-hint">Perfect — 3 stars!</span>') +
+        (!first && best > earned ? '<br><span class="win-hint">Your best is still ' + best + ' stars.</span>' : '');
       document.getElementById('winOverlay').hidden = false;
     }, 900);
   }
