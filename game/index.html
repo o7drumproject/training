@@ -463,7 +463,12 @@
       pattern: steps([0,3,6,10,12,13,14,15, 16,19,22,26,28,29,30,31]), badge:{} },
     { id:'tom-s2-4', section:'tom', mode:'listen', handsMode:true, name:'Listen & write the hands', drum:'Tom', bpm:100, bars:2,
       pattern: hands({ 0:'R',3:'L', 4:'R',6:'L', 8:'R',9:'L',11:'L', 12:'R',14:'L',
-                       16:'R',19:'L', 20:'R',22:'L', 24:'R',25:'L',27:'L', 28:'R',30:'L' }), badge:{} }
+                       16:'R',19:'L', 20:'R',22:'L', 24:'R',25:'L',27:'L', 28:'R',30:'L' }), badge:{} },
+    // 4 bars (64 steps)
+    { id:'tom-s2-5', section:'tom', mode:'listen', handsMode:true, name:'Listen & write the hands', drum:'Tom', bpm:100, bars:4,
+      pattern: hands({ 0:'R', 22:'L', 24:'R',26:'L', 28:'R',30:'R',31:'L',
+                       32:'R', 40:'R',41:'L',43:'L', 44:'R',46:'L',
+                       48:'R',49:'L',51:'L', 52:'R',54:'L', 58:'L', 60:'R',62:'R',63:'L' }, 64), badge:{} }
   ];
   // Stages: 7 levels each. Stage N+1 appears only once all 7 levels of stage N are done.
   var STAGE_SIZE = 7;
