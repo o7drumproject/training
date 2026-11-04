@@ -231,6 +231,26 @@
 </div>
 
 <script>
+/* Safari / iOS sound fix: play through the silent switch, and wake audio on every tap */
+(function(){
+  try{ if(navigator.audioSession){ navigator.audioSession.type = 'playback'; } }catch(e){}
+  var AC = window.AudioContext || window.webkitAudioContext; if(!AC) return;
+  var ctxs = [];
+  function Wrapped(opts){ var c = opts ? new AC(opts) : new AC(); ctxs.push(c); return c; }
+  Wrapped.prototype = AC.prototype;
+  try{ window.AudioContext = Wrapped; if(window.webkitAudioContext){ window.webkitAudioContext = Wrapped; } }catch(e){}
+  function wake(){
+    ctxs.forEach(function(c){
+      if(c.state !== 'running'){
+        try{ c.resume(); }catch(e){}
+        try{ var b = c.createBuffer(1, 1, 22050), s = c.createBufferSource(); s.buffer = b; s.connect(c.destination); s.start(0); }catch(e){}
+      }
+    });
+  }
+  ['pointerdown','touchstart','touchend','mousedown','keydown','click'].forEach(function(ev){ document.addEventListener(ev, wake, true); });
+})();
+</script>
+<script>
 (function(){
   "use strict";
 
