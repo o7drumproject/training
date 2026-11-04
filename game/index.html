@@ -157,6 +157,24 @@
   .hp-orange{ color:#D9701A; font-weight:900; }
   .help-link.small{ margin:6px auto 0; font-size:13px; }
 
+  /* ---------- Results popup ---------- */
+  .results-pop{ background:#fff; border-radius:22px; padding:22px 20px 18px; max-width:360px; width:100%; max-height:90vh; overflow-y:auto; position:relative; text-align:center; animation:rise .3s ease; }
+  .rp-trophy{ font-size:44px; line-height:1; }
+  .results-pop h2{ font-weight:900; font-size:22px; margin:8px 0 6px; }
+  .results-pop > p{ font-size:14.5px; color:#333; margin:0 0 14px; line-height:1.4; }
+  #resultsForm{ text-align:left; display:flex; flex-direction:column; gap:10px; }
+  #resultsForm label{ display:flex; flex-direction:column; gap:4px; font-weight:700; font-size:13.5px; color:#222; }
+  #resultsForm .opt{ font-weight:400; color:#777; }
+  #resultsForm input, #resultsForm textarea{ font:inherit; font-weight:400; font-size:16px; padding:10px 12px; border:1.5px solid #CFCFCF; border-radius:10px; background:#fff; }
+  #resultsForm input:focus, #resultsForm textarea:focus{ outline:none; border-color:var(--accent); }
+  .rp-note{ font-size:12.5px; color:#666; margin:0; }
+  .rp-error{ font-size:13px; color:var(--wrong); margin:0; font-weight:700; }
+  #rpSend{ align-self:center; margin-top:4px; }
+  .rp-mail{ align-self:center; font-weight:900; color:var(--accent); text-decoration:underline; font-size:14.5px; cursor:pointer; }
+  .rp-later{ align-self:center; background:none; border:none; color:#777; font-size:13.5px; text-decoration:underline; cursor:pointer; padding:4px; }
+  .rp-done p{ font-size:15px; margin:4px 0 16px; }
+  .send-results-btn{ align-self:center; margin:0 0 14px; }
+
   /* ---------- Stars ---------- */
   .stars{ display:inline-flex; gap:1px; font-size:17px; line-height:1; letter-spacing:0; -webkit-text-fill-color:initial; }
   .stars .on{ color:#E2A922; -webkit-text-fill-color:#E2A922; }
@@ -235,6 +253,7 @@
   </div>
   <h1 id="stageTitle">Stage 1</h1>
   <p class="sub" id="stageSub"></p>
+  <button class="pill dark send-results-btn" id="sendResultsBtn" type="button" hidden>✉ Send my results to my teacher</button>
   <div class="levels" id="levelList"></div>
   <div class="section-title">Your badges</div>
   <div class="badges" id="badgeShelf"></div>
@@ -302,6 +321,35 @@
 
     <p class="help-tip">Tip: when you play an example, the blue outline shows where you are, and you'll hear a click on every beat.</p>
     <button class="pill primary big help-ok" id="helpOk" type="button">Got it</button>
+  </div>
+</div>
+
+<!-- Netlify Forms: this hidden form lets Netlify detect the "stage-results" form at deploy time -->
+<form name="stage-results" data-netlify="true" netlify-honeypot="bot-field" hidden>
+  <input name="bot-field"><input name="name"><input name="email"><input name="drum"><input name="stage">
+  <input name="stars"><input name="levels"><input name="completed"><textarea name="message"></textarea>
+</form>
+
+<div class="overlay" id="resultsOverlay" hidden>
+  <div class="results-pop" role="dialog" aria-modal="true" aria-labelledby="resultsTitle">
+    <button class="help-close" id="resultsClose" type="button" aria-label="Close">✕</button>
+    <div class="rp-trophy" aria-hidden="true">🏆</div>
+    <h2 id="resultsTitle">Stage complete!</h2>
+    <p id="resultsSummary"></p>
+    <form id="resultsForm" novalidate>
+      <label>Your name<input id="rpName" type="text" autocomplete="name" maxlength="60" required></label>
+      <label>Your email<input id="rpEmail" type="email" autocomplete="email" maxlength="100" required></label>
+      <label>Message to your teacher <span class="opt">(optional)</span><textarea id="rpMsg" rows="2" maxlength="300"></textarea></label>
+      <p class="rp-note">Your name, email and results are sent to your O7 teacher.</p>
+      <p class="rp-error" id="rpError" hidden></p>
+      <button class="pill primary big" id="rpSend" type="submit">Send my results</button>
+      <a class="rp-mail" id="rpMailto" hidden>Open email instead</a>
+      <button class="rp-later" id="rpLater" type="button">Not now</button>
+    </form>
+    <div class="rp-done" id="rpDone" hidden>
+      <p><b>Sent!</b> Your teacher will get your results.</p>
+      <button class="pill primary big" id="rpDoneBtn" type="button">Continue</button>
+    </div>
   </div>
 </div>
 
@@ -672,6 +720,7 @@
     var levels = stageLevels(currentSection, st), complete = stageComplete(currentSection, st);
     document.getElementById('stageTitle').textContent = 'Stage ' + st;
     var starTotal = levels.reduce(function(a, lv){ return a + getStars(lv); }, 0);
+    document.getElementById('sendResultsBtn').hidden = !complete;
     document.getElementById('stageSub').innerHTML = sec.label + ' · ' + levels.filter(isDone).length + ' / ' + STAGE_SIZE + ' levels' + (complete ? ' · complete' : '') +
       '<br><span class="stage-stars">★ ' + starTotal + ' / ' + (STAGE_SIZE * 3) + ' stars</span>';
     var list = document.getElementById('levelList'); list.innerHTML = '';
@@ -708,6 +757,7 @@
     }
   }
 
+  var justCompletedStage = false;
   var cur = null, answer = [], tries = 0, hintsUsed = 0, solved = false;
   var gridEl = document.getElementById('grid'), fb = document.getElementById('feedback');
 
@@ -832,8 +882,10 @@
       if(h === 'R' || h === 'L'){ c.innerHTML = '<span class="cell-hand" aria-hidden="true">'+h+'</span>'; }
     });
     document.getElementById('checkBtn').disabled = true; document.getElementById('hintBtn').hidden = true;
+    var stageWasComplete = stageComplete(cur.section, cur.stage);
     var first = !isDone(cur), attempts = tries + 1, earned = starsFor(attempts), best = Math.max(getStars(cur), earned);
     progress.done[cur.id] = { at: Date.now(), tries: attempts, stars: best }; save();
+    justCompletedStage = !stageWasComplete && stageComplete(cur.section, cur.stage);
     setFeedback('good', '<strong>Correct!</strong> ' + (cur.mode === 'listen' ? 'You heard it right.' : 'That’s ' + cur.name + '.'));
     play(cur.pattern, cur.drum, cur.bpm, gridEl, null, null, cur.reference, cur.referenceDrum, cur.winLoops);
     setTimeout(function(){
@@ -892,7 +944,74 @@
   });
   document.getElementById('winNextBtn').addEventListener('click', function(){
     stop(); document.getElementById('winOverlay').hidden = true; renderStage(); show('stage');
+    if(justCompletedStage){ justCompletedStage = false; openResults(cur.section, cur.stage); }
   });
+
+  // ---- Send results to the teacher ----
+  var TEACHER_EMAIL = 'info@o7drumproject.co.uk';
+  var resultsCtx = null;
+  function resultsData(section, st){
+    var sec = SECTIONS.filter(function(x){ return x.key === section; })[0];
+    var levels = stageLevels(section, st), stars = levels.reduce(function(a, lv){ return a + getStars(lv); }, 0);
+    var lines = levels.map(function(lv){
+      var d = progress.done[lv.id], tr = (d && typeof d === 'object' && d.tries) ? d.tries : '?';
+      return 'Level ' + lv.n + ': ' + getStars(lv) + ' star' + (getStars(lv) === 1 ? '' : 's') + ' (' + tr + ' tr' + (tr === 1 ? 'y' : 'ies') + ')';
+    });
+    return { drum: sec.label, stage: 'Stage ' + st, stars: stars + ' / ' + (STAGE_SIZE * 3), levels: lines.join('\n'),
+             completed: new Date().toLocaleString('en-GB') };
+  }
+  function openResults(section, st){
+    resultsCtx = { section: section, stage: st };
+    var d = resultsData(section, st);
+    document.getElementById('resultsSummary').innerHTML = 'You finished <b>' + d.drum + ' · ' + d.stage + '</b> with <b>★ ' + d.stars + '</b> stars.<br>Send your results to your teacher?';
+    var saved = {}; try{ saved = JSON.parse(localStorage.getItem('o7-rhythm-game-student') || '{}'); }catch(e){}
+    document.getElementById('rpName').value = saved.name || '';
+    document.getElementById('rpEmail').value = saved.email || '';
+    document.getElementById('rpMsg').value = '';
+    document.getElementById('rpError').hidden = true;
+    document.getElementById('rpMailto').hidden = true;
+    document.getElementById('resultsForm').hidden = false;
+    document.getElementById('rpDone').hidden = true;
+    document.getElementById('rpSend').disabled = false; document.getElementById('rpSend').textContent = 'Send my results';
+    document.getElementById('resultsOverlay').hidden = false;
+  }
+  function closeResults(){ document.getElementById('resultsOverlay').hidden = true; renderStage(); }
+  function mailtoLink(fields){
+    var body = 'Name: ' + fields.name + '\nEmail: ' + fields.email + '\n\n' + fields.drum + ' · ' + fields.stage + ' completed\nStars: ' + fields.stars + '\n\n' + fields.levels +
+      (fields.message ? '\n\nMessage: ' + fields.message : '') + '\n\nCompleted: ' + fields.completed;
+    return 'mailto:' + TEACHER_EMAIL + '?subject=' + encodeURIComponent('O7 Rhythm Game – ' + fields.name + ' finished ' + fields.drum + ' ' + fields.stage) + '&body=' + encodeURIComponent(body);
+  }
+  document.getElementById('resultsForm').addEventListener('submit', function(e){
+    e.preventDefault();
+    var name = document.getElementById('rpName').value.trim(), email = document.getElementById('rpEmail').value.trim();
+    var err = document.getElementById('rpError');
+    if(!name){ err.textContent = 'Please type your name.'; err.hidden = false; return; }
+    if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){ err.textContent = 'Please type a valid email.'; err.hidden = false; return; }
+    err.hidden = true;
+    try{ localStorage.setItem('o7-rhythm-game-student', JSON.stringify({ name: name, email: email })); }catch(e2){}
+    var fields = resultsData(resultsCtx.section, resultsCtx.stage);
+    fields.name = name; fields.email = email; fields.message = document.getElementById('rpMsg').value.trim();
+    var btn = document.getElementById('rpSend'); btn.disabled = true; btn.textContent = 'Sending…';
+    var body = new URLSearchParams(Object.assign({ 'form-name': 'stage-results', 'bot-field': '' }, fields)).toString();
+    var failed = function(){
+      btn.disabled = false; btn.textContent = 'Try again';
+      err.textContent = 'Couldn’t send from here. You can send it by email instead:'; err.hidden = false;
+      var a = document.getElementById('rpMailto'); a.href = mailtoLink(fields); a.hidden = false;
+    };
+    try{
+      fetch('/', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: body })
+        .then(function(r){
+          if(!r.ok) return failed();
+          var key = 'o7-rhythm-game-sent'; var sent = {}; try{ sent = JSON.parse(localStorage.getItem(key) || '{}'); }catch(e3){}
+          sent[resultsCtx.section + '-' + resultsCtx.stage] = Date.now(); try{ localStorage.setItem(key, JSON.stringify(sent)); }catch(e4){}
+          document.getElementById('resultsForm').hidden = true; document.getElementById('rpDone').hidden = false;
+        }).catch(failed);
+    }catch(e5){ failed(); }
+  });
+  document.getElementById('rpLater').addEventListener('click', closeResults);
+  document.getElementById('resultsClose').addEventListener('click', closeResults);
+  document.getElementById('rpDoneBtn').addEventListener('click', closeResults);
+  document.getElementById('sendResultsBtn').addEventListener('click', function(){ openResults(currentSection, currentStage); });
   document.getElementById('resetBtn').addEventListener('click', function(){
     var b = this;
     if(b.dataset.confirm){ progress = { done:{} }; save(); delete b.dataset.confirm; b.textContent = 'Reset my progress'; renderHome(); }
