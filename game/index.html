@@ -129,6 +129,7 @@
   .cell.wrong{ background:var(--wrong); }
   .cell.right{ background:var(--right); }
   .cell.hint{ box-shadow:0 0 0 3px var(--gold) inset; }
+  .cell.wrong-hand{ box-shadow:0 0 0 4px #F08A24 inset; }
   .cell.pop{ animation:pop .14s ease; }
   @keyframes pop{ 50%{ transform:scale(.88); } }
   .locked-grid .cell{ cursor:default; }
@@ -395,6 +396,10 @@
       pattern: steps([0,3,6,10,12,14,15, 16,19,22,24,25,26,27,28,30]), badge:{} },
     { id:'snare-s2-3', section:'snare', mode:'listen', name:'Listen & write', drum:'Snare drum', bpm:100, bars:2,
       pattern: steps([0,2,3,6,8,10,11,12,14, 16,18,19,22,24,26,27,28]), badge:{} },
+    // handsMode: the student writes the hand (R or L) for every hit
+    { id:'snare-s2-4', section:'snare', mode:'listen', handsMode:true, name:'Listen & write the hands', drum:'Snare drum', bpm:100, bars:2,
+      pattern: hands({ 0:'R',2:'R',3:'L', 6:'L', 8:'R',10:'R',11:'L', 12:'R',14:'L',
+                       16:'R',18:'R',19:'L', 22:'L', 24:'R',26:'R',27:'L', 28:'R' }), badge:{} },
     // ---- Tom ----
     { id:'tara-tah-chula', section:'tom', mode:'name', name:'Tara Tah Chula', drum:'Tom', bpm:100, bars:2,
       pattern: hands({ 11:'L', 12:'R', 14:'L', 27:'L', 28:'R', 30:'L' }),
@@ -645,7 +650,7 @@
     cur = lv; answer = new Array(cur.pattern.length).fill(false); tries = 0; hintsUsed = 0; solved = false;
     document.getElementById('levelTag').textContent = cur.badge.tag + ' · Stage ' + cur.stage + ' · Level ' + cur.n;
     var listen = cur.mode === 'listen';
-    document.getElementById('taskLabel').textContent = listen ? 'Listen, then write what you hear' : 'Write the rhythm';
+    document.getElementById('taskLabel').textContent = listen ? (cur.handsMode ? 'Listen, then write the rhythm and the hands' : 'Listen, then write what you hear') : (cur.handsMode ? 'Write the rhythm and the hands' : 'Write the rhythm');
     document.getElementById('taskName').textContent = cur.name;
     document.getElementById('taskName').hidden = listen;
     document.getElementById('listenBtn').hidden = !listen;
@@ -654,8 +659,13 @@
     document.getElementById('checkBtn').disabled = false;
     document.getElementById('legend').hidden = !cur.reference;
     if(cur.reference) document.getElementById('legendText').textContent = 'Bass drum (' + cur.referenceName + ') — write the Tom around it';
-    setTries(); setFeedback('', 'Tap the squares where the drum plays.');
+    setTries(); setFeedback('', startText());
     renderGrid(); show('level');
+  }
+  function startText(){
+    return cur && cur.handsMode
+      ? 'Tap once for <b>R</b> (right hand), twice for <b>L</b> (left hand), three times to clear.'
+      : 'Tap the squares where the drum plays.';
   }
   function setTries(){ document.getElementById('triesLabel').textContent = tries ? ('Try ' + (tries+1)) : ''; }
   function setFeedback(kind, html){ fb.className = 'feedback ' + kind; fb.innerHTML = html; }
@@ -676,11 +686,16 @@
           b.setAttribute('data-step', step);
           b.setAttribute('aria-label', 'Bar '+(Math.floor(step/16)+1)+', beat '+(Math.floor(step/4)%4+1)+', square '+(step%4+1));
           b.setAttribute('aria-pressed', answer[step] ? 'true' : 'false');
+          if(answer[step] === 'R' || answer[step] === 'L') b.innerHTML = '<span class="cell-hand" aria-hidden="true">'+answer[step]+'</span>';
           b.addEventListener('click', function(){
             if(solved) return;
-            answer[step] = !answer[step];
+            if(cur.handsMode){ answer[step] = !answer[step] ? 'R' : answer[step] === 'R' ? 'L' : false; }
+            else { answer[step] = !answer[step]; }
             clearMarks();
-            b.classList.toggle('active', answer[step]); b.classList.toggle('reference', !answer[step] && isRef); b.setAttribute('aria-pressed', answer[step]);
+            var on = !!answer[step];
+            b.innerHTML = (answer[step] === 'R' || answer[step] === 'L') ? '<span class="cell-hand" aria-hidden="true">'+answer[step]+'</span>' : '';
+            b.classList.toggle('active', on); b.classList.toggle('reference', !on && isRef); b.setAttribute('aria-pressed', on);
+            b.setAttribute('aria-label', 'Bar '+(Math.floor(step/16)+1)+', beat '+(Math.floor(step/4)%4+1)+', square '+(step%4+1) + (cur.handsMode && on ? ', ' + (answer[step] === 'R' ? 'right hand' : 'left hand') : ''));
             b.classList.remove('pop'); void b.offsetWidth; b.classList.add('pop');
             if(answer[step]) { try{ hit(cur.drum, audio().currentTime); }catch(e){} }
           });
@@ -690,25 +705,28 @@
       row.appendChild(cells); gridEl.appendChild(row);
     }
   }
-  function clearMarks(){ gridEl.querySelectorAll('.wrong,.hint').forEach(function(x){ x.classList.remove('wrong','hint'); }); }
+  function clearMarks(){ gridEl.querySelectorAll('.wrong,.hint,.wrong-hand').forEach(function(x){ x.classList.remove('wrong','hint','wrong-hand'); }); }
 
   function check(){
     stop(); clearMarks();
-    var extra = [], missing = [];
+    var extra = [], missing = [], wrongHand = [];
     for(var i=0;i<cur.pattern.length;i++){
       var want = !!cur.pattern[i], got = !!answer[i];
       if(got && !want) extra.push(i); if(want && !got) missing.push(i);
+      if(cur.handsMode && got && want && answer[i] !== cur.pattern[i]) wrongHand.push(i);
     }
     if(!answer.some(Boolean)){ setFeedback('bad', '<strong>The grid is empty.</strong> Tap the squares where the drum plays.'); return; }
-    if(!extra.length && !missing.length){ return win(); }
+    if(!extra.length && !missing.length && !wrongHand.length){ return win(); }
     tries++; setTries();
     // Show which of the student's own hits are wrong — never reveal where the missing hits go.
     extra.forEach(function(i){ var c = gridEl.querySelector('[data-step="'+i+'"]'); if(c) c.classList.add('wrong'); });
+    wrongHand.forEach(function(i){ var c = gridEl.querySelector('[data-step="'+i+'"]'); if(c) c.classList.add('wrong-hand'); });
     var parts = [];
     if(extra.length) parts.push(extra.length + ' square' + (extra.length>1?'s':'') + ' in red ' + (extra.length>1?'shouldn’t':'shouldn’t') + ' be there');
     if(missing.length) parts.push(missing.length + ' hit' + (missing.length>1?'s are':' is') + ' missing');
+    if(wrongHand.length) parts.push(wrongHand.length + ' hit' + (wrongHand.length>1?'s have':' has') + ' the wrong hand (outlined in orange)');
     setFeedback('bad', '<strong>Not yet.</strong> ' + cap(parts.join(', and ')) + '.<br>Take your time — try again.');
-    if(tries >= 3 && missing.length) document.getElementById('hintBtn').hidden = false;
+    if(tries >= 3 && (missing.length || wrongHand.length)) document.getElementById('hintBtn').hidden = false;
   }
   function cap(s){ return s.charAt(0).toUpperCase() + s.slice(1); }
 
@@ -720,6 +738,16 @@
         hintsUsed++;
         setFeedback('', 'The square outlined in gold is one of the missing hits.');
         return;
+      }
+    }
+    if(cur.handsMode){
+      for(var j=0;j<cur.pattern.length;j++){
+        if(cur.pattern[j] && answer[j] && answer[j] !== cur.pattern[j]){
+          var c2 = gridEl.querySelector('[data-step="'+j+'"]'); if(c2){ c2.classList.add('hint'); }
+          hintsUsed++;
+          setFeedback('', 'The square outlined in gold needs the other hand.');
+          return;
+        }
       }
     }
   }
@@ -741,7 +769,7 @@
       document.getElementById('winTitle').textContent = first ? 'Badge unlocked!' : 'Well played again!';
       document.getElementById('winText').innerHTML = (cur.mode === 'listen' ? 'You wrote the rhythm you heard correctly' : 'You wrote <b>' + cur.name + '</b> correctly') +
         (tries === 0 ? ' on your first try.' : ' in ' + (tries+1) + ' tries.') +
-        (cur.pattern.some(function(v){ return v === 'R' || v === 'L'; }) ? '<br>The hands (R/L) are now shown on the grid.' : '') +
+        (!cur.handsMode && cur.pattern.some(function(v){ return v === 'R' || v === 'L'; }) ? '<br>The hands (R/L) are now shown on the grid.' : '') +
         (first ? '<br>You earned the <b>' + cur.badge.title + '</b> badge.' : '') +
         (earned < 3 ? '<br><span class="win-hint">Play this level again any time to earn ' + (earned + 1) + ' stars.</span>' : '<br><span class="win-hint">Perfect — 3 stars!</span>') +
         (!first && best > earned ? '<br><span class="win-hint">Your best is still ' + best + ' stars.</span>' : '');
@@ -754,7 +782,7 @@
   document.getElementById('stageBackBtn').addEventListener('click', function(){ renderHome(); show('home'); });
   document.getElementById('checkBtn').addEventListener('click', check);
   document.getElementById('hintBtn').addEventListener('click', hint);
-  document.getElementById('clearBtn').addEventListener('click', function(){ if(solved) return; stop(); answer.fill(false); renderGrid(); setFeedback('', 'Tap the squares where the drum plays.'); });
+  document.getElementById('clearBtn').addEventListener('click', function(){ if(solved) return; stop(); answer.fill(false); renderGrid(); setFeedback('', startText()); });
   // ---- Tutorial popup ----
   var helpOverlay = document.getElementById('helpOverlay');
   helpOverlay.querySelectorAll('.help-ex').forEach(function(ex){
