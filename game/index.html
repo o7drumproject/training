@@ -141,6 +141,22 @@
   .actions{ display:flex; justify-content:center; gap:10px; flex-wrap:wrap; }
   .big{ padding:14px 34px; font-size:17px; }
 
+  /* ---------- Hands popup ---------- */
+  .hands-pop{ background:#fff; border-radius:22px; padding:22px 20px 20px; max-width:340px; width:100%; text-align:center; animation:rise .3s ease; }
+  .hands-pop h2{ font-weight:900; font-size:21px; margin:0 0 8px; }
+  .hands-pop p{ font-size:14.5px; color:#333; margin:0 0 12px; line-height:1.4; }
+  .hp-keys{ display:flex; justify-content:center; gap:22px; margin:0 0 16px; }
+  .hp-keys div{ display:flex; align-items:center; gap:8px; font-size:14.5px; }
+  .hp-cell{ width:40px; height:40px; border-radius:20%; background:#CFCFCF; box-shadow:inset 0 0 0 1px rgba(0,0,0,.08);
+    display:inline-flex; align-items:center; justify-content:center; font-weight:900; font-size:19px; color:#fff; }
+  .hp-cell.on{ background:#232323; }
+  .hp-cycle{ display:flex; justify-content:center; align-items:center; gap:6px; }
+  .hp-arrow{ font-weight:900; color:#979797; }
+  .hp-cycle-labels{ display:grid; grid-template-columns:repeat(4,40px); column-gap:26px; justify-content:center; font-size:11px; color:#777; margin:5px 0 14px; }
+  .hp-note{ font-size:13.5px !important; color:#555 !important; }
+  .hp-orange{ color:#D9701A; font-weight:900; }
+  .help-link.small{ margin:6px auto 0; font-size:13px; }
+
   /* ---------- Stars ---------- */
   .stars{ display:inline-flex; gap:1px; font-size:17px; line-height:1; letter-spacing:0; -webkit-text-fill-color:initial; }
   .stars .on{ color:#E2A922; -webkit-text-fill-color:#E2A922; }
@@ -240,6 +256,7 @@
     <div class="task-name" id="taskName">Chula</div>
     <button class="pill primary big" id="listenBtn" type="button" hidden>▶ Listen</button>
     <div class="task-info" id="taskInfo">Bass drum · 2 bars</div>
+    <button class="help-link small" id="handsHelpLink" type="button" hidden>How R and L work</button>
     <div class="legend" id="legend" hidden><i></i><span id="legendText"></span></div>
   </div>
 
@@ -285,6 +302,24 @@
 
     <p class="help-tip">Tip: when you play an example, the blue outline shows where you are, and you'll hear a click on every beat.</p>
     <button class="pill primary big help-ok" id="helpOk" type="button">Got it</button>
+  </div>
+</div>
+
+<div class="overlay" id="handsOverlay" hidden>
+  <div class="hands-pop" role="dialog" aria-modal="true" aria-labelledby="handsTitle">
+    <h2 id="handsTitle">Now write the hands</h2>
+    <p>In this level every hit needs the hand that plays it:</p>
+    <div class="hp-keys"><div><span class="hp-cell on">R</span><b>Right hand</b></div><div><span class="hp-cell on">L</span><b>Left hand</b></div></div>
+    <p><b>Tap a square to change it:</b></p>
+    <div class="hp-cycle">
+      <span class="hp-cell"></span><span class="hp-arrow">→</span>
+      <span class="hp-cell on">R</span><span class="hp-arrow">→</span>
+      <span class="hp-cell on">L</span><span class="hp-arrow">→</span>
+      <span class="hp-cell"></span>
+    </div>
+    <div class="hp-cycle-labels"><span>empty</span><span>1 tap</span><span>2 taps</span><span>3 taps</span></div>
+    <p class="hp-note">When you check, a hit with the wrong hand gets an <span class="hp-orange">orange outline</span>.</p>
+    <button class="pill primary big" id="handsOk" type="button">Got it</button>
   </div>
 </div>
 
@@ -660,6 +695,12 @@
     document.getElementById('legend').hidden = !cur.reference;
     if(cur.reference) document.getElementById('legendText').textContent = 'Bass drum (' + cur.referenceName + ') — write the Tom around it';
     setTries(); setFeedback('', startText());
+    document.getElementById('handsHelpLink').hidden = !cur.handsMode;
+    if(cur.handsMode){
+      var seenKey = 'o7-rhythm-game-hands-seen', seen = false;
+      try{ seen = localStorage.getItem(seenKey) === '1'; }catch(e){}
+      if(!seen){ document.getElementById('handsOverlay').hidden = false; try{ localStorage.setItem(seenKey, '1'); }catch(e){} }
+    }
     renderGrid(); show('level');
   }
   function startText(){
@@ -783,6 +824,11 @@
   document.getElementById('checkBtn').addEventListener('click', check);
   document.getElementById('hintBtn').addEventListener('click', hint);
   document.getElementById('clearBtn').addEventListener('click', function(){ if(solved) return; stop(); answer.fill(false); renderGrid(); setFeedback('', startText()); });
+  // ---- Hands (R/L) popup ----
+  document.getElementById('handsOk').addEventListener('click', function(){ document.getElementById('handsOverlay').hidden = true; });
+  document.getElementById('handsHelpLink').addEventListener('click', function(){ document.getElementById('handsOverlay').hidden = false; });
+  document.getElementById('handsOverlay').addEventListener('click', function(e){ if(e.target === this) this.hidden = true; });
+
   // ---- Tutorial popup ----
   var helpOverlay = document.getElementById('helpOverlay');
   helpOverlay.querySelectorAll('.help-ex').forEach(function(ex){
