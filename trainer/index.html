@@ -763,6 +763,12 @@
   var CLASS_RHYTHMS = [
     { id: 'class-chula-bassdrum', name: 'Chula', drum: 'Bass drum', bpm: STANDARD_BPM,
       pattern: patternFromSteps([0,4,8,16,20,22,24]), source: 'class' },
+    { id: 'class-incrivel-intro-tom', name: 'Incrível – Intro', drum: 'Tom', bpm: 120,
+      // copy of the Bass drum Intro without the Bass notes; Snare shown faded red
+      pattern: patternFromSteps([
+        3, 4, 6, 8, 11, 12, 14,  19, 20, 22, 24, 27, 28, 30,  35, 36, 38, 40, 43, 44, 46 ], 64),
+      layers: [ { drum: 'Snare drum', color: 'snare', pattern: patternFromSteps([ 58, 60, 62 ], 64) } ],
+      source: 'class' },
     { id: 'class-incrivel-intro-snare', name: 'Incrível – Intro', drum: 'Snare drum', bpm: 120,
       pattern: patternFromHits({ 10:'L', 12:'R', 14:'L', 26:'L', 28:'R', 30:'L', 42:'L', 44:'R', 46:'L', 58:'L', 60:'R', 62:'L' }, 64),
       // Bass and Tom shown faded and played quieter, so the Snare stands out
@@ -1835,6 +1841,7 @@ var TOM_B64 = "UklGRg5yAgBXQVZFZm10IBAAAAABAAIARKwAABCxAgAEABAAZGF0YfRtAgA1/Tb9K
     // Tom
     'class-taratah-tom': 1,
     'class-tara-tah-2bar-tom': 1,
+    'class-incrivel-intro-tom': 2,
     'class-tom-solo-partb-tom': 2
   };
   // Stage flow: drums with stages first show one button per stage; tapping a stage shows its rhythms.
