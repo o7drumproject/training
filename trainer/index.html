@@ -976,7 +976,7 @@ var TOM_B64 = "UklGRg5yAgBXQVZFZm10IBAAAAABAAIARKwAABCxAgAEABAAZGF0YfRtAgA1/Tb9K
   function ensureAudio(){
     if(!audioCtx){
       var AC = window.AudioContext || window.webkitAudioContext;
-      audioCtx = new AC();
+      try{ audioCtx = new AC({ latencyHint: 'interactive' }); }catch(e){ audioCtx = new AC(); }
     }
     if(audioCtx.state === 'suspended'){ audioCtx.resume(); }
     return audioCtx;
@@ -1211,7 +1211,8 @@ var TOM_B64 = "UklGRg5yAgBXQVZFZm10IBAAAAABAAIARKwAABCxAgAEABAAZGF0YfRtAgA1/Tb9K
 
   function draw(){
     if(!isPlaying) return;
-    var t = audioCtx.currentTime;
+    // light a square when its sound actually reaches the speaker, not when it is sent
+    var t = audioCtx.currentTime - ((audioCtx.outputLatency || 0) + (audioCtx.baseLatency || 0));
     while(notesInQueue.length && notesInQueue[0].time <= t){
       var note = notesInQueue.shift();
       highlightStep(note.step);

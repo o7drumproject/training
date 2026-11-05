@@ -631,7 +631,7 @@
   var ctx = null, buffers = {};
   function audio(){
     if(!ctx){
-      var AC = window.AudioContext || window.webkitAudioContext; ctx = new AC();
+      var AC = window.AudioContext || window.webkitAudioContext; try{ ctx = new AC({ latencyHint: 'interactive' }); }catch(e){ ctx = new AC(); }
       Object.keys(SAMPLES).forEach(function(name){
         try{
           var bin = atob(SAMPLES[name]), bytes = new Uint8Array(bin.length);
@@ -672,9 +672,10 @@
     }
     playing = { btn:btn, label:btn ? btn.textContent : '' };
     if(btn) btn.textContent = '■ Stop';
-    var start = performance.now();
+    // follow the audio clock (not the page clock), allowing for the time sound takes to reach the speaker
     (function tick(){
-      var elapsed = (performance.now() - start)/1000 - .15;
+      var lat = (c.outputLatency || 0) + (c.baseLatency || 0);
+      var elapsed = c.currentTime - lat - t0;
       var i = Math.floor(elapsed / step);
       if(gridEl){ gridEl.querySelectorAll('.playhead').forEach(function(x){ x.classList.remove('playhead'); });
         if(i >= 0 && i < total){ var cell = gridEl.querySelector('[data-step="'+(i % pattern.length)+'"]'); if(cell) cell.classList.add('playhead'); } }
@@ -823,7 +824,11 @@
           b.setAttribute('aria-label', 'Bar '+(Math.floor(step/16)+1)+', beat '+(Math.floor(step/4)%4+1)+', square '+(step%4+1));
           b.setAttribute('aria-pressed', answer[step] ? 'true' : 'false');
           if(answer[step] === 'R' || answer[step] === 'L') b.innerHTML = '<span class="cell-hand" aria-hidden="true">'+answer[step]+'</span>';
-          b.addEventListener('click', function(){
+          var downFired = false;
+          // react when the finger touches the square (a 'click' only fires on release, which sounds late)
+          b.addEventListener('pointerdown', function(e){ if(e.button > 0) return; downFired = true; tap(); });
+          b.addEventListener('click', function(){ if(downFired){ downFired = false; return; } tap(); });
+          function tap(){
             if(solved) return;
             if(cur.handsMode){ answer[step] = !answer[step] ? 'R' : answer[step] === 'R' ? 'L' : false; }
             else { answer[step] = !answer[step]; }
@@ -834,7 +839,7 @@
             b.setAttribute('aria-label', 'Bar '+(Math.floor(step/16)+1)+', beat '+(Math.floor(step/4)%4+1)+', square '+(step%4+1) + (cur.handsMode && on ? ', ' + (answer[step] === 'R' ? 'right hand' : 'left hand') : ''));
             b.classList.remove('pop'); void b.offsetWidth; b.classList.add('pop');
             if(answer[step]) { try{ hit(cur.drum, audio().currentTime); }catch(e){} }
-          });
+          }
           cells.appendChild(b);
         })(r*4 + c);
       }
