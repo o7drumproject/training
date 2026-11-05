@@ -346,10 +346,11 @@
       <label>Your name<input id="rpName" type="text" autocomplete="name" maxlength="60" required></label>
       <label>Your email<input id="rpEmail" type="email" autocomplete="email" maxlength="100" required></label>
       <label>Message to your teacher <span class="opt">(optional)</span><textarea id="rpMsg" rows="2" maxlength="300"></textarea></label>
-      <p class="rp-note">Opens your email app with your results ready to send to your O7 teacher.</p>
+      <p class="rp-note">Makes a picture of your results to send to your O7 teacher (WhatsApp, email…).</p>
       <p class="rp-error" id="rpError" hidden></p>
-      <button class="pill primary big" id="rpSend" type="submit">Open email</button>
-      <button class="rp-mail" id="rpImage" type="button">Send as an image instead</button>
+      <button class="pill primary big" id="rpSend" type="submit">Send my results</button>
+      <button class="rp-mail" id="rpImage" type="button">Save the picture to my phone</button>
+      <button class="rp-later" id="rpText" type="button">Send as a text email instead</button>
       <button class="rp-later" id="rpLater" type="button">Not now</button>
     </form>
     <div class="rp-done" id="rpDone" hidden>
@@ -986,7 +987,7 @@
     document.getElementById('rpError').hidden = true;
     document.getElementById('resultsForm').hidden = false;
     document.getElementById('rpDone').hidden = true;
-    document.getElementById('rpSend').disabled = false; document.getElementById('rpSend').textContent = 'Open email';
+    document.getElementById('rpSend').disabled = false; document.getElementById('rpSend').textContent = 'Send my results';
     document.getElementById('resultsOverlay').hidden = false;
   }
   function closeResults(){ document.getElementById('resultsOverlay').hidden = true; renderStage(); }
@@ -1014,9 +1015,8 @@
     document.getElementById('rpDoneText').innerHTML = html;
     document.getElementById('resultsForm').hidden = true; document.getElementById('rpDone').hidden = false;
   }
-  // Default: open the student's email app with the results already written
-  document.getElementById('resultsForm').addEventListener('submit', function(e){
-    e.preventDefault();
+  // Plain text email (option)
+  document.getElementById('rpText').addEventListener('click', function(){
     var fields = readForm(); if(!fields) return;
     markSent();
     window.location.href = mailtoLink(fields);
@@ -1056,25 +1056,44 @@
     logo.onerror = finish;
     logo.src = document.querySelector('.brand-logo') ? document.querySelector('.brand-logo').src : '';
   }
-  document.getElementById('rpImage').addEventListener('click', function(){
-    var fields = readForm(); if(!fields) return;
-    var btn = this; btn.disabled = true;
+  function makeFile(fields, cb){
     resultsImage(fields, function(blob){
-      btn.disabled = false;
       if(!blob) return;
-      var fname = 'O7 results - ' + fields.name + ' - ' + fields.drum + ' ' + fields.stage + '.png';
-      var file = null; try{ file = new File([blob], fname, { type: 'image/png' }); }catch(e){}
+      var fname = 'O7 results - ' + fields.name + ' - ' + fields.drum + ' ' + fields.stage + '.png', file = null;
+      try{ file = new File([blob], fname, { type: 'image/png' }); }catch(e){}
+      cb(blob, file, fname);
+    });
+  }
+  function download(blob, fname){
+    var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = fname; document.body.appendChild(a); a.click(); a.remove();
+  }
+  // Default: share the picture (phone share menu: WhatsApp, Mail, Save image…)
+  document.getElementById('resultsForm').addEventListener('submit', function(e){
+    e.preventDefault();
+    var fields = readForm(); if(!fields) return;
+    var btn = document.getElementById('rpSend'); btn.disabled = true;
+    makeFile(fields, function(blob, file, fname){
+      btn.disabled = false;
       if(file && navigator.canShare && navigator.canShare({ files: [file] })){
-        navigator.share({ files: [file], title: 'O7 results', text: 'My O7 Rhythm Game results – for ' + TEACHER_EMAIL })
-          .then(function(){ markSent(); showDone('<b>Done!</b> Make sure it went to <b>' + TEACHER_EMAIL + '</b>.'); })
+        navigator.share({ files: [file], title: 'O7 results', text: 'My O7 Rhythm Game results' })
+          .then(function(){ markSent(); showDone('<b>Done!</b> Make sure it went to your O7 teacher.'); })
           .catch(function(){});
         return;
       }
-      // No share sheet (most computers): save the picture, then open email to attach it
-      var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = fname; document.body.appendChild(a); a.click(); a.remove();
-      markSent();
+      // No share menu (most computers): save the picture, then open email to attach it
+      download(blob, fname); markSent();
       window.location.href = mailtoLink(fields);
       showDone('<b>Picture saved</b> to your downloads. Attach it to the email that opens and press <b>Send</b>.<br><span class="rp-note">Send it to <b>' + TEACHER_EMAIL + '</b>.</span>');
+    });
+  });
+  // Save the picture, to send later (e.g. on WhatsApp)
+  document.getElementById('rpImage').addEventListener('click', function(){
+    var fields = readForm(); if(!fields) return;
+    var btn = this; btn.disabled = true;
+    makeFile(fields, function(blob, file, fname){
+      btn.disabled = false;
+      download(blob, fname); markSent();
+      showDone('<b>Picture saved!</b> Send it to your O7 teacher on WhatsApp or by email.<br><span class="rp-note">iPhone: it’s in the <b>Files</b> app (Downloads). Android: in <b>Downloads</b> or your gallery.</span>');
     });
   });
   document.getElementById('rpLater').addEventListener('click', closeResults);
