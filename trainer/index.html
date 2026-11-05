@@ -557,12 +557,13 @@
   <div class="home-title-block"><h1 class="home-title">Rhythm Trainer</h1><p class="home-sub">Play along with the O7 rhythms,<br>or compose your own.</p><button class="o7h-link" type="button" data-open-help>How the grid works</button></div>
 
   <div class="home-picks">
-    <div class="home-pick">
-      <button class="home-pick-value" id="homeDrumPick" type="button">Choose your drum</button>
-    </div>
-    <div class="home-pick">
-      <button class="home-pick-value" id="homeRhythmPick" type="button" disabled>Choose your rhythm</button>
-    </div>
+    <!-- one button per drum: opens that drum's rhythm list directly -->
+    <div class="home-pick"><button class="home-pick-value home-drum-btn" data-home-drum="Bass drum" type="button">Bass Drum</button></div>
+    <div class="home-pick"><button class="home-pick-value home-drum-btn" data-home-drum="Snare drum" type="button">Snare Drum</button></div>
+    <div class="home-pick"><button class="home-pick-value home-drum-btn" data-home-drum="Tom" type="button">Tom</button></div>
+    <!-- kept hidden so older code that refers to them keeps working -->
+    <button id="homeDrumPick" type="button" hidden></button>
+    <button id="homeRhythmPick" type="button" hidden disabled></button>
 
     <button class="home-compose-btn" id="composeNewBtn" type="button">Compose new</button>
   </div>
@@ -1648,6 +1649,17 @@ var TOM_B64 = "UklGRg5yAgBXQVZFZm10IBAAAAABAAIARKwAABCxAgAEABAAZGF0YfRtAgA1/Tb9K
   drumModalBackdrop.addEventListener('click', function(e){
     if(e.target === drumModalBackdrop){ closeDrumModal(); }
   });
+  // Home: each drum button goes straight to that drum's rhythm list
+  Array.prototype.slice.call(document.querySelectorAll('[data-home-drum]')).forEach(function(btn){
+    btn.addEventListener('click', function(){
+      selectedDrum = btn.getAttribute('data-home-drum');
+      homeDrumPick.textContent = selectedDrum;
+      chooserDrumLabel.textContent = selectedDrum;
+      renderClassList();
+      renderStudentList();
+      goToScreen('chooser');
+    });
+  });
   drumModalOptions.forEach(function(btn){
     btn.addEventListener('click', function(){
       selectedDrum = btn.getAttribute('data-drum');
@@ -1875,6 +1887,8 @@ var TOM_B64 = "UklGRg5yAgBXQVZFZm10IBAAAAABAAIARKwAABCxAgAEABAAZGF0YfRtAgA1/Tb9K
   .o7h-ok{ display:block; margin:0 auto; border:none; border-radius:999px; padding:14px 34px; background:#225EE2; color:#fff; font-weight:700; font-size:17px; cursor:pointer; font-family:'Lato',sans-serif; }
 
   #screen-player .info-row{ gap:24px; }
+  .home-drum-btn{ background:#232323 !important; color:#fff !important; }
+  .rhythm-card{ background:#fff !important; border:1.5px solid #D6D6D6 !important; }
   .stage-heading{ font-family:'Lato',sans-serif; font-weight:900; font-size:14px; color:#225EE2; text-transform:uppercase; letter-spacing:.08em; margin:8px 0 -2px 2px; }
   .stage-heading:first-child{ margin-top:0; }
   .stage-soon{ font-family:'Lato',sans-serif; font-size:14px; color:#777; margin:0 0 2px 2px; padding:12px 14px; border:2px dashed #CFCFCF; border-radius:12px; }
