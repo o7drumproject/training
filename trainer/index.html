@@ -763,6 +763,9 @@
   var CLASS_RHYTHMS = [
     { id: 'class-chula-bassdrum', name: 'Chula', drum: 'Bass drum', bpm: STANDARD_BPM,
       pattern: patternFromSteps([0,4,8,16,20,22,24]), source: 'class' },
+    { id: 'class-incrivel-parta-snare', name: 'Incrível – Part A', drum: 'Snare drum', bpm: 120,
+      // Snare part of the Bass drum Part A, without the Bass notes
+      pattern: patternFromSteps([1, 2, 3, 4, 10, 11, 12, 14, 18, 20, 21, 22, 23, 26, 27, 30, 33, 34, 35, 36, 42, 43, 44, 46, 50, 52, 53, 54, 55, 58, 59, 65, 66, 67, 68, 74, 75, 76, 78, 82, 84, 85, 86, 87, 90, 91, 94, 97, 98, 99, 100, 106, 107, 108, 110, 114, 116, 117, 118, 119], 128), source: 'class' },
     { id: 'class-incrivel-partb-snare', name: 'Incrível – Part B', drum: 'Snare drum', bpm: 120,
       // main, middle, main, end
       pattern: patternFromHits({
@@ -1812,6 +1815,7 @@ var TOM_B64 = "UklGRg5yAgBXQVZFZm10IBAAAAABAAIARKwAABCxAgAEABAAZGF0YfRtAgA1/Tb9K
     'class-pombalense-parta-base-bassdrum': 3,
     // Snare drum
     'class-roll-exercice-1-snare': 1,
+    'class-incrivel-parta-snare': 2,
     'class-incrivel-partb-snare': 2,
     'class-pombalense-parta-base-snare': 3,
     // Tom
