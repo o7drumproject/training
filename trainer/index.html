@@ -1152,6 +1152,13 @@ var TOM_B64 = "UklGRg5yAgBXQVZFZm10IBAAAAABAAIARKwAABCxAgAEABAAZGF0YfRtAgA1/Tb9K
     var cell = scope.querySelector('.cell[data-step="' + step + '"]');
     if(cell){
       cell.classList.add('playhead');
+      // long rhythms scroll inside the frame: follow the playhead one bar at a time
+      var seq = cell.closest ? cell.closest('.sequencer') : null;
+      if(seq && seq.scrollHeight > seq.clientHeight + 2 && step % 16 === 0){
+        var row = cell.closest('.row'), sr = seq.getBoundingClientRect(), rr = row.getBoundingClientRect();
+        var target = seq.scrollTop + (rr.top - sr.top) - 8;
+        try{ seq.scrollTo({ top: target, behavior: 'smooth' }); }catch(e){ seq.scrollTop = target; }
+      }
       if(cell.classList.contains('active')){
         cell.classList.remove('pop');
         void cell.offsetWidth;
@@ -1308,7 +1315,7 @@ var TOM_B64 = "UklGRg5yAgBXQVZFZm10IBAAAAABAAIARKwAABCxAgAEABAAZGF0YfRtAgA1/Tb9K
       var heightBased = seqHeight / (rows + rowGaps * ROW_GAP_RATIO + measureGaps * MEASURE_GAP_RATIO);
       var widthCap = (seqWidth * MAX_WIDTH_SHARE) / (4 + 3 * COL_GAP_RATIO);
 
-      var size = Math.max(20, Math.min(heightBased, widthCap, MAX_CELL));
+      var size = Math.max(Math.min(36, widthCap), Math.min(heightBased, widthCap, MAX_CELL));
       var root = document.documentElement.style;
       root.setProperty('--cell-size', size + 'px');
       root.setProperty('--col-gap', (size * COL_GAP_RATIO) + 'px');
@@ -1877,6 +1884,10 @@ var TOM_B64 = "UklGRg5yAgBXQVZFZm10IBAAAAABAAIARKwAABCxAgAEABAAZGF0YfRtAgA1/Tb9K
   .page{ max-width:440px; background:rgba(255,255,255,.88); -webkit-backdrop-filter:blur(3px); backdrop-filter:blur(3px);
     border-radius:24px; padding:52px 18px 14px; box-shadow:0 8px 30px rgba(0,0,0,.35); }
   #screen-home{ padding-top:24px; }
+  /* keep the grid inside the frame: the sequencer only gets the space left in the frame,
+     and fitToScreen sizes the squares to that space */
+  #screen-player .sequencer, #screen-composer .sequencer{ min-height:0; overflow-y:auto; overflow-x:hidden; justify-content:safe center;
+    -webkit-overflow-scrolling:touch; overscroll-behavior:contain; }
   /* back buttons: black pill with label, inside the frame */
   .back-btn{ position:absolute; top:9px; left:10px; width:auto; height:36px; padding:0 15px 0 11px; gap:5px;
     border-radius:999px; background:#232323; color:#fff; font-size:15px; }
