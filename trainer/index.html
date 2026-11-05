@@ -849,7 +849,19 @@
     { id: 'class-bass-exercise-1', name: 'Practice rhythm 1', drum: 'Bass drum', bpm: STANDARD_BPM,
       pattern: patternFromSteps([0,6,8, 16,22,24]), source: 'class' },
     { id: 'class-bass-exercise-2', name: 'Practice rhythm 2', drum: 'Bass drum', bpm: STANDARD_BPM,
-      pattern: patternFromSteps([0,6,8,12, 20,24]), source: 'class' }
+      pattern: patternFromSteps([0,6,8,12, 20,24]), source: 'class' },
+    // Incrível - Intro (Stage 2). Bass drum is the part to play (blue);
+    // Tom and Snare are shown faded and sounded quieter, for context.
+    { id: 'class-incrivel-intro-bassdrum', name: 'Incrível – Intro', drum: 'Bass drum', bpm: 120,
+      mainColor: 'bass',
+      pattern: patternFromSteps([0, 16, 32, 48], 64),
+      layers: [
+        { drum: 'Tom', color: 'tom', pattern: patternFromHits({
+            3:'L', 4:'R', 6:'L', 8:'R', 11:'L', 12:'R', 14:'L',
+            19:'L', 20:'R', 22:'L', 24:'R', 27:'L', 28:'R', 30:'L',
+            35:'L', 36:'R', 38:'L', 40:'R', 43:'L', 44:'R', 46:'L' }, 64) },
+        { drum: 'Snare drum', color: 'snare', pattern: patternFromHits({ 58:'L', 60:'R', 62:'L' }, 64) }
+      ], source: 'class' }
   ];
   var studentRhythms = []; // populated live from the shared db, when available
 
@@ -891,6 +903,7 @@ var TOM_B64 = "UklGRg5yAgBXQVZFZm10IBAAAAABAAIARKwAABCxAgAEABAAZGF0YfRtAgA1/Tb9K
   // above, but - unlike the reference pattern - only ever marks steps the
   // main pattern already hits, never a step of its own.
   var activeAccentPattern = null;
+  var activeLayers = null; // other drums' parts, shown faded and sounded quieter
   var activeAccentDrum = 'Bass drum';
 
   function playByDrumName(name, t, vel){
@@ -1118,6 +1131,7 @@ var TOM_B64 = "UklGRg5yAgBXQVZFZm10IBAAAAABAAIARKwAABCxAgAEABAAZGF0YfRtAgA1/Tb9K
     if(clickEnabled && step % 4 === 0){ playClick(time, step % 16 === 0); }
     if(state.pattern[step]){ playDrumHit(time, 1); }
     if(activeReferencePattern && activeReferencePattern[step]){ playReferenceHit(time, 0.85); }
+    if(activeLayers){ activeLayers.forEach(function(l){ if(l.pattern[step]) playByDrumName(l.drum, time, 0.55); }); }
     if(state.pattern[step] && activeAccentPattern && activeAccentPattern[step]){ playAccentHit(time, 0.95); }
     notesInQueue.push({ step: step, time: time });
   }
@@ -1217,8 +1231,10 @@ var TOM_B64 = "UklGRg5yAgBXQVZFZm10IBAAAAABAAIARKwAABCxAgAEABAAZGF0YfRtAgA1/Tb9K
 
   // ---------- Rendering ----------
   // Shared by the player (read-only) and the composer (tap to toggle).
-  function renderGrid(containerEl, pattern, editable, referencePattern, accentPattern){
+  function renderGrid(containerEl, pattern, editable, referencePattern, accentPattern, layers, mainColor){
     containerEl.innerHTML = '';
+    containerEl.classList.remove('main-bass');
+    if(mainColor) containerEl.classList.add('main-' + mainColor);
     var rows = pattern.length / 4; // 8 rows per 2 measures - 16 for a 4-measure rhythm
     for(var row = 0; row < rows; row++){
       var rowEl = document.createElement('div');
@@ -1250,9 +1266,15 @@ var TOM_B64 = "UklGRg5yAgBXQVZFZm10IBAAAAABAAIARKwAABCxAgAEABAAZGF0YfRtAgA1/Tb9K
           // Class rhythms for Snare/Tom mark a hand on each hit ('R'/'L')
           // instead of a plain true. Composer-edited patterns are always
           // plain booleans, so this only ever shows up read-only.
-          var handLabel = (value === 'R' || value === 'L') ? value : '';
+          // Other drums' parts (faded): only where the main part has no hit
+          var layerHit = null;
+          if(!isHit && !isReference && layers){
+            for(var li = 0; li < layers.length; li++){ if(layers[li].pattern[step]){ layerHit = layers[li]; break; } }
+          }
+          var layerValue = layerHit ? layerHit.pattern[step] : null;
+          var handLabel = (value === 'R' || value === 'L') ? value : ((layerValue === 'R' || layerValue === 'L') ? layerValue : '');
           var cell = document.createElement(editable ? 'button' : 'div');
-          cell.className = 'cell' + (isHit ? ' active' : '') + (isReference ? ' reference' : '') + (editable ? ' editable' : '');
+          cell.className = 'cell' + (isHit ? ' active' : '') + (isReference ? ' reference' : '') + (layerHit ? ' layer layer-' + layerHit.color : '') + (editable ? ' editable' : '');
           cell.setAttribute('data-step', step);
           if(handLabel){
             var handEl = document.createElement('span');
@@ -1278,7 +1300,7 @@ var TOM_B64 = "UklGRg5yAgBXQVZFZm10IBAAAAABAAIARKwAABCxAgAEABAAZGF0YfRtAgA1/Tb9K
             cell.setAttribute('role', 'img');
             cell.setAttribute('aria-label',
               'Beat ' + (Math.floor(step / 4) % 4 + 1) +
-              ', count ' + (step % 4 + 1) + ': ' + (isHit ? ('hit' + (handLabel ? (' ' + handLabel) : '') + (isAccentHit ? ' with accent' : '')) : (isReference ? 'bass drum reference' : 'rest')));
+              ', count ' + (step % 4 + 1) + ': ' + (isHit ? ('hit' + (handLabel ? (' ' + handLabel) : '') + (isAccentHit ? ' with accent' : '')) : (isReference ? 'bass drum reference' : (layerHit ? (layerHit.drum + ' part' + (handLabel ? ' ' + handLabel : '')) : 'rest'))));
           }
           cellsEl.appendChild(cell);
         })(row * 4 + col);
@@ -1438,7 +1460,8 @@ var TOM_B64 = "UklGRg5yAgBXQVZFZm10IBAAAAABAAIARKwAABCxAgAEABAAZGF0YfRtAgA1/Tb9K
     playerDrumValue.textContent = rhythm.drum;
     playerRhythmValue.textContent = rhythm.name;
     playerBpmValue.textContent = rhythm.bpm;
-    renderGrid(sequencerEl, state.pattern, false, rhythm.referencePattern, rhythm.accentPattern);
+    activeLayers = rhythm.layers || null;
+    renderGrid(sequencerEl, state.pattern, false, rhythm.referencePattern, rhythm.accentPattern, rhythm.layers, rhythm.mainColor);
     editRhythmBtn.hidden = rhythm.source !== 'student';
     goToScreen('player');
   }
@@ -1591,6 +1614,7 @@ var TOM_B64 = "UklGRg5yAgBXQVZFZm10IBAAAAABAAIARKwAABCxAgAEABAAZGF0YfRtAgA1/Tb9K
   function openComposer(existingRhythm){
     if(existingRhythm){ setComposerDrum(existingRhythm.drum); } else { resetComposerDrum(); }
     activeReferencePattern = null; // composed rhythms never have a reference line
+    activeLayers = null;
     activeAccentPattern = null; // ...or an accent pattern
     editingCreationId = (existingRhythm && existingRhythm.source === 'student') ? existingRhythm.id : null;
     composerNameInput.value = existingRhythm ? existingRhythm.name : '';
@@ -1764,6 +1788,7 @@ var TOM_B64 = "UklGRg5yAgBXQVZFZm10IBAAAAABAAIARKwAABCxAgAEABAAZGF0YfRtAgA1/Tb9K
     'class-moonstep-bassdrum': 1,
     'class-bass-exercise-1': 1,
     'class-bass-exercise-2': 1,
+    'class-incrivel-intro-bassdrum': 2,
     'class-pombalense-parta-base-bassdrum': 3
   };
   // Stage flow: drums with stages first show one button per stage; tapping a stage shows its rhythms.
@@ -2005,6 +2030,12 @@ var TOM_B64 = "UklGRg5yAgBXQVZFZm10IBAAAAABAAIARKwAABCxAgAEABAAZGF0YfRtAgA1/Tb9K
   .home-btn{ position:absolute; top:9px; right:10px; height:36px; padding:0 14px 0 11px; border-radius:999px; border:none; background:#232323; color:#fff;
     display:inline-flex; align-items:center; gap:6px; font-family:'Lato',sans-serif; font-weight:900; font-size:15px; cursor:pointer; z-index:2; }
   .home-btn[hidden]{ display:none; }
+  /* main part in blue (e.g. Bass drum in Incrível), other drums faded */
+  .sequencer.main-bass .cell.active{ background:#0062E3; }
+  .cell.layer{ opacity:.4; }
+  .cell.layer .cell-hand{ color:#fff; }
+  .cell.layer-tom{ background:#232323; }
+  .cell.layer-snare{ background:#E87800; }
   .stage-btn{ display:flex; align-items:center; gap:10px; width:100%; padding:18px 18px; border-radius:16px; border:none; cursor:pointer;
     background:#232323; color:#fff; font-family:'Lato',sans-serif; text-align:left; }
   .stage-btn .sb-name{ font-weight:900; font-size:22px; }
