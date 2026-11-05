@@ -48,11 +48,12 @@
   .tab small{ font-size:12px; color:#666; -webkit-text-fill-color:#666; }
   .tab.on{ background:var(--cell-dark); border-color:var(--cell-dark); color:#fff; -webkit-text-fill-color:#fff; }
   .tab.on small{ color:#ccc; -webkit-text-fill-color:#ccc; }
-  .tab-icon{ height:46px; width:auto; display:block; margin:0 auto 4px; }
-  .tab-icon-snare{ height:38px; margin-top:4px; margin-bottom:8px; }
+  .tab-icon{ height:60px; width:auto; display:block; margin:0 auto 4px; box-sizing:border-box; }
+  .tab-icon-snare{ padding:10px 0; }  /* same box height as Bass/Tom so the names line up; the drawing itself is smaller */
   .tab.on .tab-icon{ filter:invert(1); }
   .stage-drum-logo{ display:block; height:130px; width:auto; margin:4px auto 0; }
   .stage-drum-logo-snare{ height:92px; margin-top:14px; margin-bottom:10px; }
+  .stage-drum-logo-bass, .stage-drum-logo-tom{ height:165px; }
   .stage-card .level-num{ background:var(--accent); }
   .stage-card.locked .level-num{ background:var(--num); }
   .stage-card.done .level-num{ background:var(--cell-dark); }
