@@ -874,7 +874,8 @@
     { id: 'class-incrivel-partb-bassdrum', name: 'Incrível – Part B', drum: 'Bass drum', bpm: 120,
       mainColor: 'bass',
       pattern: patternFromSteps([0, 8, 12, 16, 24, 28, 32, 40, 44, 48, 56, 60, 64, 72, 76, 80, 88, 92, 96, 104, 108, 112], 128),
-      layers: [ { drum: 'Snare drum', color: 'snare', pattern: patternFromSteps([3, 6, 10, 14, 15, 19, 22, 26, 30, 31, 35, 38, 42, 46, 47, 51, 54, 58, 62, 63, 67, 70, 74, 78, 79, 83, 86, 90, 94, 95, 99, 102, 105, 107, 110, 122, 124, 126, 127], 128) } ],
+      // the Snare also plays on every Bass hit, so its sound includes those steps (shown in blue)
+      layers: [ { drum: 'Snare drum', color: 'snare', pattern: patternFromSteps([0, 3, 6, 8, 10, 12, 14, 15, 16, 19, 22, 24, 26, 28, 30, 31, 32, 35, 38, 40, 42, 44, 46, 47, 48, 51, 54, 56, 58, 60, 62, 63, 64, 67, 70, 72, 74, 76, 78, 79, 80, 83, 86, 88, 90, 92, 94, 95, 96, 99, 102, 104, 105, 107, 108, 110, 112, 122, 124, 126, 127], 128) } ],
       source: 'class' }
   ];
   var studentRhythms = []; // populated live from the shared db, when available
