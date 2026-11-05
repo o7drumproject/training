@@ -976,7 +976,7 @@
   function openResults(section, st){
     resultsCtx = { section: section, stage: st };
     var d = resultsData(section, st);
-    document.getElementById('resultsSummary').innerHTML = 'You finished <b>' + d.drum + ' · ' + d.stage + '</b> with <b>★ ' + d.stars + '</b> stars.<br>Send your results to your teacher?';
+    document.getElementById('resultsSummary').innerHTML = 'You finished <b style="white-space:nowrap">' + d.drum + ' · ' + d.stage + '</b><br><span style="white-space:nowrap">with <b>★ ' + d.stars + '</b> stars.</span><br>Send your results to your teacher?';
     var saved = {}; try{ saved = JSON.parse(localStorage.getItem('o7-rhythm-game-student') || '{}'); }catch(e){}
     document.getElementById('rpName').value = saved.name || '';
     document.getElementById('rpEmail').value = saved.email || '';
