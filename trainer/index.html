@@ -1684,10 +1684,39 @@ var TOM_B64 = "UklGRg5yAgBXQVZFZm10IBAAAAABAAIARKwAABCxAgAEABAAZGF0YfRtAgA1/Tb9K
 
   // Both lists are filtered down to whichever drum is currently selected
   // from the home screen's "Choose your drum" popup.
+  // Stages per class rhythm (by id). Drums with no stages set are listed without stage headings.
+  var RHYTHM_STAGES = {
+    'class-chula-bassdrum': 1,
+    'class-2bar-bassdrum': 1,
+    'class-moonstep-bassdrum': 1,
+    'class-pombalense-parta-base-bassdrum': 3
+  };
   function renderClassList(){
     classRhythmListEl.innerHTML = '';
     var filtered = CLASS_RHYTHMS.filter(function(r){ return r.drum === selectedDrum; });
-    filtered.forEach(function(r){ classRhythmListEl.appendChild(makeRhythmCard(r)); });
+    var staged = filtered.some(function(r){ return RHYTHM_STAGES[r.id]; });
+    if(!staged){
+      filtered.forEach(function(r){ classRhythmListEl.appendChild(makeRhythmCard(r)); });
+    } else {
+      var maxStage = 0;
+      filtered.forEach(function(r){ maxStage = Math.max(maxStage, RHYTHM_STAGES[r.id] || 0); });
+      for(var s = 1; s <= maxStage; s++){
+        var inStage = filtered.filter(function(r){ return RHYTHM_STAGES[r.id] === s; });
+        var h = document.createElement('h3'); h.className = 'stage-heading'; h.textContent = 'Stage ' + s;
+        classRhythmListEl.appendChild(h);
+        if(!inStage.length){
+          var soon = document.createElement('p'); soon.className = 'stage-soon'; soon.textContent = 'Coming soon';
+          classRhythmListEl.appendChild(soon);
+        }
+        inStage.forEach(function(r){ classRhythmListEl.appendChild(makeRhythmCard(r)); });
+      }
+      var other = filtered.filter(function(r){ return !RHYTHM_STAGES[r.id]; });
+      if(other.length){
+        var h2 = document.createElement('h3'); h2.className = 'stage-heading'; h2.textContent = 'Other rhythms';
+        classRhythmListEl.appendChild(h2);
+        other.forEach(function(r){ classRhythmListEl.appendChild(makeRhythmCard(r)); });
+      }
+    }
     classEmptyHint.hidden = filtered.length > 0;
   }
 
@@ -1846,6 +1875,9 @@ var TOM_B64 = "UklGRg5yAgBXQVZFZm10IBAAAAABAAIARKwAABCxAgAEABAAZGF0YfRtAgA1/Tb9K
   .o7h-ok{ display:block; margin:0 auto; border:none; border-radius:999px; padding:14px 34px; background:#225EE2; color:#fff; font-weight:700; font-size:17px; cursor:pointer; font-family:'Lato',sans-serif; }
 
   #screen-player .info-row{ gap:24px; }
+  .stage-heading{ font-family:'Lato',sans-serif; font-weight:900; font-size:14px; color:#225EE2; text-transform:uppercase; letter-spacing:.08em; margin:8px 0 -2px 2px; }
+  .stage-heading:first-child{ margin-top:0; }
+  .stage-soon{ font-family:'Lato',sans-serif; font-size:14px; color:#777; margin:0 0 2px 2px; padding:12px 14px; border:2px dashed #CFCFCF; border-radius:12px; }
   #screen-home{ gap:22px; }
   .home-title-block{ text-align:center; margin-top:-6px; }
   .home-title{ font-family:'Lato',sans-serif; font-weight:900; font-size:28px; margin:0 0 4px; color:#000; }
