@@ -1390,9 +1390,13 @@ var TOM_B64 = "UklGRg5yAgBXQVZFZm10IBAAAAABAAIARKwAABCxAgAEABAAZGF0YfRtAgA1/Tb9K
   }
 
   playBtn.addEventListener('click', function(){ togglePlayback(playBtn, playLabel); });
-  document.getElementById('playerBackBtn').addEventListener('click', function(){ goToScreen('home'); });
+  // Back from a rhythm returns to the rhythm list it was opened from
+  document.getElementById('playerBackBtn').addEventListener('click', function(){ goToScreen(selectedDrum ? 'chooser' : 'home'); });
   homeRhythmPick.addEventListener('click', function(){ goToScreen('chooser'); });
-  document.getElementById('chooserBackBtn').addEventListener('click', function(){ goToScreen('home'); });
+  document.getElementById('chooserBackBtn').addEventListener('click', function(){
+    if(chooserStage !== null && drumHasStages(selectedDrum)){ chooserStage = null; renderClassList(); return; }
+    goToScreen('home');
+  });
   editRhythmBtn.addEventListener('click', function(){
     if(currentPlayerRhythm){ openComposer(currentPlayerRhythm); }
   });
@@ -1653,6 +1657,7 @@ var TOM_B64 = "UklGRg5yAgBXQVZFZm10IBAAAAABAAIARKwAABCxAgAEABAAZGF0YfRtAgA1/Tb9K
   Array.prototype.slice.call(document.querySelectorAll('[data-home-drum]')).forEach(function(btn){
     btn.addEventListener('click', function(){
       selectedDrum = btn.getAttribute('data-home-drum');
+      chooserStage = null;
       homeDrumPick.textContent = selectedDrum;
       chooserDrumLabel.textContent = selectedDrum;
       renderClassList();
@@ -1703,33 +1708,50 @@ var TOM_B64 = "UklGRg5yAgBXQVZFZm10IBAAAAABAAIARKwAABCxAgAEABAAZGF0YfRtAgA1/Tb9K
     'class-moonstep-bassdrum': 1,
     'class-pombalense-parta-base-bassdrum': 3
   };
+  // Stage flow: drums with stages first show one button per stage; tapping a stage shows its rhythms.
+  var STAGE_COUNT = 3;
+  var chooserStage = null;
+  function drumHasStages(drum){ return CLASS_RHYTHMS.some(function(r){ return r.drum === drum && RHYTHM_STAGES[r.id]; }); }
   function renderClassList(){
     classRhythmListEl.innerHTML = '';
     var filtered = CLASS_RHYTHMS.filter(function(r){ return r.drum === selectedDrum; });
-    var staged = filtered.some(function(r){ return RHYTHM_STAGES[r.id]; });
+    var staged = drumHasStages(selectedDrum);
+    var classTitle = classRhythmListEl.parentNode.querySelector('.section-title');
+    var creations = studentRhythmListEl.closest ? studentRhythmListEl.closest('.rhythm-section') : null;
     if(!staged){
+      chooserStage = null;
+      if(classTitle) classTitle.textContent = 'Class Rhythms';
+      if(creations) creations.hidden = false;
+      chooserDrumLabel.textContent = selectedDrum;
       filtered.forEach(function(r){ classRhythmListEl.appendChild(makeRhythmCard(r)); });
-    } else {
-      var maxStage = 0;
-      filtered.forEach(function(r){ maxStage = Math.max(maxStage, RHYTHM_STAGES[r.id] || 0); });
-      for(var s = 1; s <= maxStage; s++){
-        var inStage = filtered.filter(function(r){ return RHYTHM_STAGES[r.id] === s; });
-        var h = document.createElement('h3'); h.className = 'stage-heading'; h.textContent = 'Stage ' + s;
-        classRhythmListEl.appendChild(h);
-        if(!inStage.length){
-          var soon = document.createElement('p'); soon.className = 'stage-soon'; soon.textContent = 'Coming soon';
-          classRhythmListEl.appendChild(soon);
-        }
-        inStage.forEach(function(r){ classRhythmListEl.appendChild(makeRhythmCard(r)); });
-      }
-      var other = filtered.filter(function(r){ return !RHYTHM_STAGES[r.id]; });
-      if(other.length){
-        var h2 = document.createElement('h3'); h2.className = 'stage-heading'; h2.textContent = 'Other rhythms';
-        classRhythmListEl.appendChild(h2);
-        other.forEach(function(r){ classRhythmListEl.appendChild(makeRhythmCard(r)); });
-      }
+      classEmptyHint.hidden = filtered.length > 0;
+      return;
     }
-    classEmptyHint.hidden = filtered.length > 0;
+    classEmptyHint.hidden = true;
+    if(chooserStage === null){
+      // stage buttons
+      if(classTitle) classTitle.textContent = 'Choose your stage';
+      if(creations) creations.hidden = false;
+      chooserDrumLabel.textContent = selectedDrum;
+      for(var s = 1; s <= STAGE_COUNT; s++){
+        (function(st){
+          var count = filtered.filter(function(r){ return RHYTHM_STAGES[r.id] === st; }).length;
+          var b = document.createElement('button'); b.type = 'button';
+          b.className = 'stage-btn' + (count ? '' : ' empty');
+          b.innerHTML = '<span class="sb-name">Stage ' + st + '</span><span class="sb-meta">' + (count ? count + ' rhythm' + (count > 1 ? 's' : '') : 'Coming soon') + '</span><span class="sb-arrow" aria-hidden="true">›</span>';
+          if(count){ b.addEventListener('click', function(){ chooserStage = st; renderClassList(); var sc = document.querySelector('#screen-chooser .picker-scroll'); if(sc) sc.scrollTop = 0; }); }
+          else { b.disabled = true; }
+          classRhythmListEl.appendChild(b);
+        })(s);
+      }
+    } else {
+      // rhythms in the chosen stage
+      if(classTitle) classTitle.textContent = 'Stage ' + chooserStage;
+      if(creations) creations.hidden = true;
+      chooserDrumLabel.textContent = selectedDrum + ' · Stage ' + chooserStage;
+      filtered.filter(function(r){ return RHYTHM_STAGES[r.id] === chooserStage; })
+        .forEach(function(r){ classRhythmListEl.appendChild(makeRhythmCard(r)); });
+    }
   }
 
   function renderStudentList(){
@@ -1889,6 +1911,13 @@ var TOM_B64 = "UklGRg5yAgBXQVZFZm10IBAAAAABAAIARKwAABCxAgAEABAAZGF0YfRtAgA1/Tb9K
   #screen-player .info-row{ gap:24px; }
   .home-drum-btn{ background:#232323 !important; color:#fff !important; }
   .rhythm-card{ background:#fff !important; border:1.5px solid #D6D6D6 !important; }
+  .stage-btn{ display:flex; align-items:center; gap:10px; width:100%; padding:18px 18px; border-radius:16px; border:none; cursor:pointer;
+    background:#232323; color:#fff; font-family:'Lato',sans-serif; text-align:left; }
+  .stage-btn .sb-name{ font-weight:900; font-size:22px; }
+  .stage-btn .sb-meta{ flex:1; font-size:13px; color:#BDBDBD; text-align:right; }
+  .stage-btn .sb-arrow{ font-size:26px; font-weight:900; line-height:1; color:#fff; }
+  .stage-btn.empty{ background:#fff; color:#888; border:2px dashed #CFCFCF; cursor:default; }
+  .stage-btn.empty .sb-meta{ color:#999; } .stage-btn.empty .sb-arrow{ display:none; }
   .stage-heading{ font-family:'Lato',sans-serif; font-weight:900; font-size:14px; color:#225EE2; text-transform:uppercase; letter-spacing:.08em; margin:8px 0 -2px 2px; }
   .stage-heading:first-child{ margin-top:0; }
   .stage-soon{ font-family:'Lato',sans-serif; font-size:14px; color:#777; margin:0 0 2px 2px; padding:12px 14px; border:2px dashed #CFCFCF; border-radius:12px; }
