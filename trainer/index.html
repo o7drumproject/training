@@ -1154,9 +1154,9 @@ var TOM_B64 = "UklGRg5yAgBXQVZFZm10IBAAAAABAAIARKwAABCxAgAEABAAZGF0YfRtAgA1/Tb9K
       cell.classList.add('playhead');
       // long rhythms scroll inside the frame: follow the playhead one bar at a time
       var seq = cell.closest ? cell.closest('.sequencer') : null;
-      if(seq && seq.scrollHeight > seq.clientHeight + 2 && step % 16 === 0){
+      if(seq && seq.scrollHeight > seq.clientHeight + 2 && step % 32 === 0){
         var row = cell.closest('.row'), sr = seq.getBoundingClientRect(), rr = row.getBoundingClientRect();
-        var target = seq.scrollTop + (rr.top - sr.top) - 8;
+        var target = seq.scrollTop + (rr.top - sr.top) - (parseFloat(getComputedStyle(seq).paddingTop) || 0);
         try{ seq.scrollTo({ top: target, behavior: 'smooth' }); }catch(e){ seq.scrollTop = target; }
       }
       if(cell.classList.contains('active')){
@@ -1312,7 +1312,9 @@ var TOM_B64 = "UklGRg5yAgBXQVZFZm10IBAAAAABAAIARKwAABCxAgAEABAAZGF0YfRtAgA1/Tb9K
       var rows = seqEl.children.length || 8;
       var measureGaps = Math.max(0, (rows / 4) - 1);
       var rowGaps = rows - 1 - measureGaps;
-      var heightBased = seqHeight / (rows + rowGaps * ROW_GAP_RATIO + measureGaps * MEASURE_GAP_RATIO);
+      // Long rhythms are shown one block (2 bars = 8 rows) at a time, so size the squares for one block
+      var blockRows = Math.min(rows, 8), blockMeasureGaps = Math.max(0, (blockRows / 4) - 1), blockRowGaps = blockRows - 1 - blockMeasureGaps;
+      var heightBased = seqHeight / (blockRows + blockRowGaps * ROW_GAP_RATIO + blockMeasureGaps * MEASURE_GAP_RATIO);
       var widthCap = (seqWidth * MAX_WIDTH_SHARE) / (4 + 3 * COL_GAP_RATIO);
 
       var size = Math.max(Math.min(36, widthCap), Math.min(heightBased, widthCap, MAX_CELL));
@@ -1321,6 +1323,12 @@ var TOM_B64 = "UklGRg5yAgBXQVZFZm10IBAAAAABAAIARKwAABCxAgAEABAAZGF0YfRtAgA1/Tb9K
       root.setProperty('--col-gap', (size * COL_GAP_RATIO) + 'px');
       root.setProperty('--row-gap', (size * ROW_GAP_RATIO) + 'px');
       root.setProperty('--measure-gap', (size * MEASURE_GAP_RATIO) + 'px');
+      // Each further block starts exactly one screen below the previous one
+      var blockHeight = blockRows * size + blockRowGaps * size * ROW_GAP_RATIO + blockMeasureGaps * size * MEASURE_GAP_RATIO;
+      var blockGap = Math.max(size * MEASURE_GAP_RATIO, seqHeight - blockHeight);
+      seqEl.style.setProperty('--block-gap', blockGap + 'px');
+      Array.prototype.forEach.call(seqEl.children, function(rowEl, i){ rowEl.classList.toggle('block-start', i > 0 && i % 8 === 0); });
+      seqEl.classList.toggle('blocks', rows > 8);
     });
   }
 
@@ -1888,7 +1896,12 @@ var TOM_B64 = "UklGRg5yAgBXQVZFZm10IBAAAAABAAIARKwAABCxAgAEABAAZGF0YfRtAgA1/Tb9K
      and fitToScreen sizes the squares to that space */
   #screen-player .sequencer, #screen-composer .sequencer{ min-height:0; overflow-y:auto; overflow-x:hidden; justify-content:safe center;
     /* the gap above/below the grid is a margin (outside the scroll area), so squares never slide under the buttons */
-    margin-top:16px; padding-top:4px; margin-bottom:10px; padding-bottom:4px;
+    margin-top:16px; padding-top:4px; margin-bottom:10px; padding-bottom:4px; }
+  .sequencer.blocks{ scroll-snap-type:y mandatory; scroll-padding-top:4px; justify-content:flex-start; }
+  .sequencer.blocks > .row:first-child, .sequencer .row.block-start{ scroll-snap-align:start; }
+  .sequencer .row.block-start{ margin-top:var(--block-gap, 40px); }
+  .sequencer.blocks::after{ content:''; flex:0 0 4px; }
+  .o7-dummy{
     -webkit-overflow-scrolling:touch; overscroll-behavior:contain; }
   /* back buttons: black pill with label, inside the frame */
   .back-btn{ position:absolute; top:9px; left:10px; width:auto; height:36px; padding:0 15px 0 11px; gap:5px;
