@@ -176,7 +176,6 @@
   #resultsForm .opt{ font-weight:400; color:#777; }
   #resultsForm input, #resultsForm textarea{ font:inherit; font-weight:400; font-size:16px; padding:10px 12px; border:1.5px solid #CFCFCF; border-radius:10px; background:#fff; }
   #resultsForm input:focus, #resultsForm textarea:focus{ outline:none; border-color:var(--accent); }
-  .mail-ico{ font-size:1.7em; line-height:0; vertical-align:-0.18em; margin-right:4px; }
   .rp-note{ font-size:12.5px; color:#666; margin:0; }
   .rp-error{ font-size:13px; color:var(--wrong); margin:0; font-weight:700; }
   #rpSend{ align-self:center; margin-top:4px; }
@@ -264,7 +263,7 @@
   <img class="stage-drum-logo" id="stageDrumLogo" alt="" aria-hidden="true">
   <h1 id="stageTitle">Stage 1</h1>
   <p class="sub" id="stageSub"></p>
-  <button class="pill dark send-results-btn" id="sendResultsBtn" type="button" hidden><span class="mail-ico" aria-hidden="true">✉</span> Send my results to my teacher</button>
+  <button class="pill dark send-results-btn" id="sendResultsBtn" type="button" hidden>Send my results to my teacher</button>
   <div class="levels" id="levelList"></div>
   <div class="section-title">Your badges</div>
   <div class="badges" id="badgeShelf"></div>
@@ -346,11 +345,9 @@
       <label>Your name<input id="rpName" type="text" autocomplete="name" maxlength="60" required></label>
       <label>Your email<input id="rpEmail" type="email" autocomplete="email" maxlength="100" required></label>
       <label>Message to your teacher <span class="opt">(optional)</span><textarea id="rpMsg" rows="2" maxlength="300"></textarea></label>
-      <p class="rp-note">Makes a picture of your results to send to your O7 teacher (WhatsApp, email…).</p>
+      <p class="rp-note">Opens your email app with your results ready to send to your O7 teacher.</p>
       <p class="rp-error" id="rpError" hidden></p>
       <button class="pill primary big" id="rpSend" type="submit">Send my results</button>
-      <button class="rp-mail" id="rpImage" type="button">Save the picture to my phone</button>
-      <button class="rp-later" id="rpText" type="button">Send as a text email instead</button>
       <button class="rp-later" id="rpLater" type="button">Not now</button>
     </form>
     <div class="rp-done" id="rpDone" hidden>
@@ -1015,86 +1012,13 @@
     document.getElementById('rpDoneText').innerHTML = html;
     document.getElementById('resultsForm').hidden = true; document.getElementById('rpDone').hidden = false;
   }
-  // Plain text email (option)
-  document.getElementById('rpText').addEventListener('click', function(){
+  // Open the student's email app with the results already written
+  document.getElementById('resultsForm').addEventListener('submit', function(e){
+    e.preventDefault();
     var fields = readForm(); if(!fields) return;
     markSent();
     window.location.href = mailtoLink(fields);
     showDone('<b>Almost done!</b> Your email app should open with your results. Press <b>Send</b> there.<br><span class="rp-note">Nothing opened? Email <b>' + TEACHER_EMAIL + '</b> yourself.</span>');
-  });
-
-  // Results card as an image (for the share sheet on phones, or saved to attach by hand)
-  var DRUM_COLORS = { bass:'#2F6BF0', snare:'#E04848', tom:'#22A862' };
-  function resultsImage(fields, done){
-    var W = 1080, H = 1350, cv = document.createElement('canvas'); cv.width = W; cv.height = H;
-    var g = cv.getContext('2d'), col = DRUM_COLORS[resultsCtx.section] || '#222', F = '-apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
-    g.fillStyle = '#fff'; g.fillRect(0, 0, W, H);
-    g.fillStyle = col; g.fillRect(0, 0, W, 24); g.fillRect(0, H - 24, W, 24);
-    var levels = stageLevels(resultsCtx.section, resultsCtx.stage);
-    function text(s, x, y, size, weight, color, align){ g.font = (weight || 400) + ' ' + size + 'px ' + F; g.fillStyle = color || '#222'; g.textAlign = align || 'center'; g.fillText(s, x, y); }
-    function finish(){
-      text('Stage complete!', W/2, 310, 72, 900, '#111');
-      text(fields.name, W/2, 395, 54, 700, '#222');
-      text(fields.drum + ' · ' + fields.stage, W/2, 465, 46, 800, col);
-      text('★ ' + fields.stars + ' stars', W/2, 550, 58, 900, '#E8A317');
-      var y = 640;
-      levels.forEach(function(lv){
-        var n = getStars(lv), d = progress.done[lv.id], tr = (d && typeof d === 'object' && d.tries) ? d.tries : null;
-        g.fillStyle = '#F3F3F3'; g.beginPath(); if(g.roundRect){ g.roundRect(170, y - 50, W - 340, 72, 18); } else { g.rect(170, y - 50, W - 340, 72); } g.fill();
-        text('Level ' + lv.n, 210, y, 38, 800, '#222', 'left');
-        var sx = W - 210 - (tr ? 150 : 0) - 3 * 46;
-        for(var k = 0; k < 3; k++) text('★', sx + k * 46, y, 44, 900, k < n ? '#E8A317' : '#D6D6D6', 'left');
-        if(tr) text(tr + (tr === 1 ? ' try' : ' tries'), W - 210, y, 30, 600, '#777', 'right');
-        y += 80;
-      });
-      if(fields.message){ text('“' + fields.message.slice(0, 60) + (fields.message.length > 60 ? '…' : '') + '”', W/2, y + 15, 32, 400, '#444'); }
-      text(fields.completed, W/2, H - 60, 28, 600, '#999');
-      cv.toBlob(function(b){ done(b); }, 'image/png');
-    }
-    var logo = new Image();
-    logo.onload = function(){ var h = 150, w = logo.width * h / logo.height; if(w > 600){ w = 600; h = logo.height * w / logo.width; } g.drawImage(logo, (W - w)/2, 70, w, h); finish(); };
-    logo.onerror = finish;
-    logo.src = document.querySelector('.brand-logo') ? document.querySelector('.brand-logo').src : '';
-  }
-  function makeFile(fields, cb){
-    resultsImage(fields, function(blob){
-      if(!blob) return;
-      var fname = 'O7 results - ' + fields.name + ' - ' + fields.drum + ' ' + fields.stage + '.png', file = null;
-      try{ file = new File([blob], fname, { type: 'image/png' }); }catch(e){}
-      cb(blob, file, fname);
-    });
-  }
-  function download(blob, fname){
-    var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = fname; document.body.appendChild(a); a.click(); a.remove();
-  }
-  // Default: share the picture (phone share menu: WhatsApp, Mail, Save image…)
-  document.getElementById('resultsForm').addEventListener('submit', function(e){
-    e.preventDefault();
-    var fields = readForm(); if(!fields) return;
-    var btn = document.getElementById('rpSend'); btn.disabled = true;
-    makeFile(fields, function(blob, file, fname){
-      btn.disabled = false;
-      if(file && navigator.canShare && navigator.canShare({ files: [file] })){
-        navigator.share({ files: [file], title: 'O7 results', text: 'My O7 Rhythm Game results' })
-          .then(function(){ markSent(); showDone('<b>Done!</b> Make sure it went to your O7 teacher.'); })
-          .catch(function(){});
-        return;
-      }
-      // No share menu (most computers): save the picture, then open email to attach it
-      download(blob, fname); markSent();
-      window.location.href = mailtoLink(fields);
-      showDone('<b>Picture saved</b> to your downloads. Attach it to the email that opens and press <b>Send</b>.<br><span class="rp-note">Send it to <b>' + TEACHER_EMAIL + '</b>.</span>');
-    });
-  });
-  // Save the picture, to send later (e.g. on WhatsApp)
-  document.getElementById('rpImage').addEventListener('click', function(){
-    var fields = readForm(); if(!fields) return;
-    var btn = this; btn.disabled = true;
-    makeFile(fields, function(blob, file, fname){
-      btn.disabled = false;
-      download(blob, fname); markSent();
-      showDone('<b>Picture saved!</b> Send it to your O7 teacher on WhatsApp or by email.<br><span class="rp-note">iPhone: it’s in the <b>Files</b> app (Downloads). Android: in <b>Downloads</b> or your gallery.</span>');
-    });
   });
   document.getElementById('rpLater').addEventListener('click', closeResults);
   document.getElementById('resultsClose').addEventListener('click', closeResults);
