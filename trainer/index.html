@@ -763,6 +763,15 @@
   var CLASS_RHYTHMS = [
     { id: 'class-chula-bassdrum', name: 'Chula', drum: 'Bass drum', bpm: STANDARD_BPM,
       pattern: patternFromSteps([0,4,8,16,20,22,24]), source: 'class' },
+    { id: 'class-incrivel-intro-snare', name: 'Incrível – Intro', drum: 'Snare drum', bpm: 120,
+      mainColor: 'snare',
+      pattern: patternFromHits({ 10:'L', 12:'R', 14:'L', 26:'L', 28:'R', 30:'L', 42:'L', 44:'R', 46:'L', 58:'L', 60:'R', 62:'L' }, 64),
+      // Bass and Tom shown faded and played quieter, so the Snare stands out
+      layers: [
+        { drum: 'Bass drum', color: 'bass', gain: 0.3, pattern: patternFromSteps([0, 16, 32, 48], 64) },
+        { drum: 'Tom', color: 'tom', gain: 0.3, pattern: patternFromSteps([
+            3, 4, 6, 8, 11, 12, 14,  19, 20, 22, 24, 27, 28, 30,  35, 36, 38, 40, 43, 44, 46 ], 64) }
+      ], source: 'class' },
     { id: 'class-incrivel-parta-snare', name: 'Incrível – Part A', drum: 'Snare drum', bpm: 120,
       // blocks B1, B2, B3 (= B1), B4
       pattern: patternFromHits({
@@ -1157,7 +1166,7 @@ var TOM_B64 = "UklGRg5yAgBXQVZFZm10IBAAAAABAAIARKwAABCxAgAEABAAZGF0YfRtAgA1/Tb9K
     if(clickEnabled && step % 4 === 0){ playClick(time, step % 16 === 0); }
     if(state.pattern[step]){ playDrumHit(time, 1); }
     if(activeReferencePattern && activeReferencePattern[step]){ playReferenceHit(time, 0.85); }
-    if(activeLayers){ activeLayers.forEach(function(l){ if(l.pattern[step]) playByDrumName(l.drum, time, 0.55); }); }
+    if(activeLayers){ activeLayers.forEach(function(l){ if(l.pattern[step]) playByDrumName(l.drum, time, l.gain || 0.55); }); }
     if(state.pattern[step] && activeAccentPattern && activeAccentPattern[step]){ playAccentHit(time, 0.95); }
     notesInQueue.push({ step: step, time: time });
   }
@@ -1820,6 +1829,7 @@ var TOM_B64 = "UklGRg5yAgBXQVZFZm10IBAAAAABAAIARKwAABCxAgAEABAAZGF0YfRtAgA1/Tb9K
     'class-pombalense-parta-base-bassdrum': 3,
     // Snare drum
     'class-roll-exercice-1-snare': 1,
+    'class-incrivel-intro-snare': 2,
     'class-incrivel-parta-snare': 2,
     'class-incrivel-partb-snare': 2,
     'class-pombalense-parta-base-snare': 3,
