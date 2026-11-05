@@ -610,6 +610,7 @@
 
 <div class="page" id="screen-chooser">
   <button class="back-btn" id="chooserBackBtn" type="button" aria-label="Back"><svg class="back-btn-arrow" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><polyline points="15 5 8 12 15 19" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="back-btn-label">Back</span></button>
+  <button class="home-btn" id="chooserHomeBtn" type="button" hidden aria-label="Home"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M3 11.5 12 4l9 7.5" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 10v9h12v-9" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/></svg><span>Home</span></button>
   <div class="picker-header">
     <h1 class="picker-title">Choose a Rhythm</h1>
     <p class="picker-subtitle" id="chooserDrumLabel">Bass drum</p>
@@ -1393,6 +1394,7 @@ var TOM_B64 = "UklGRg5yAgBXQVZFZm10IBAAAAABAAIARKwAABCxAgAEABAAZGF0YfRtAgA1/Tb9K
   // Back from a rhythm returns to the rhythm list it was opened from
   document.getElementById('playerBackBtn').addEventListener('click', function(){ goToScreen(selectedDrum ? 'chooser' : 'home'); });
   homeRhythmPick.addEventListener('click', function(){ goToScreen('chooser'); });
+  document.getElementById('chooserHomeBtn').addEventListener('click', function(){ chooserStage = null; renderClassList(); goToScreen('home'); });
   document.getElementById('chooserBackBtn').addEventListener('click', function(){
     if(chooserStage !== null && drumHasStages(selectedDrum)){ chooserStage = null; renderClassList(); return; }
     goToScreen('home');
@@ -1729,6 +1731,7 @@ var TOM_B64 = "UklGRg5yAgBXQVZFZm10IBAAAAABAAIARKwAABCxAgAEABAAZGF0YfRtAgA1/Tb9K
       return;
     }
     classEmptyHint.hidden = true;
+    document.getElementById('chooserHomeBtn').hidden = true;
     if(chooserStage === null){
       // stage buttons
       if(classTitle) classTitle.textContent = 'Choose your stage';
@@ -1748,6 +1751,7 @@ var TOM_B64 = "UklGRg5yAgBXQVZFZm10IBAAAAABAAIARKwAABCxAgAEABAAZGF0YfRtAgA1/Tb9K
     } else {
       // rhythms in the chosen stage
       if(classTitle) classTitle.textContent = 'Stage ' + chooserStage;
+      document.getElementById('chooserHomeBtn').hidden = false;
       if(creations) creations.hidden = true;
       chooserDrumLabel.textContent = selectedDrum + ' · Stage ' + chooserStage;
       filtered.filter(function(r){ return stageOf(r) === chooserStage; })
@@ -1912,6 +1916,9 @@ var TOM_B64 = "UklGRg5yAgBXQVZFZm10IBAAAAABAAIARKwAABCxAgAEABAAZGF0YfRtAgA1/Tb9K
   #screen-player .info-row{ gap:24px; }
   .home-drum-btn{ background:#232323 !important; color:#fff !important; }
   .rhythm-card{ background:#fff !important; border:1.5px solid #D6D6D6 !important; }
+  .home-btn{ position:absolute; top:9px; right:10px; height:36px; padding:0 14px 0 11px; border-radius:999px; border:none; background:#232323; color:#fff;
+    display:inline-flex; align-items:center; gap:6px; font-family:'Lato',sans-serif; font-weight:900; font-size:15px; cursor:pointer; z-index:2; }
+  .home-btn[hidden]{ display:none; }
   .stage-btn{ display:flex; align-items:center; gap:10px; width:100%; padding:18px 18px; border-radius:16px; border:none; cursor:pointer;
     background:#232323; color:#fff; font-family:'Lato',sans-serif; text-align:left; }
   .stage-btn .sb-name{ font-weight:900; font-size:22px; }
