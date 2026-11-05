@@ -764,8 +764,13 @@
     { id: 'class-chula-bassdrum', name: 'Chula', drum: 'Bass drum', bpm: STANDARD_BPM,
       pattern: patternFromSteps([0,4,8,16,20,22,24]), source: 'class' },
     { id: 'class-incrivel-parta-snare', name: 'Incrível – Part A', drum: 'Snare drum', bpm: 120,
-      // Snare part of the Bass drum Part A, without the Bass notes
-      pattern: patternFromSteps([1, 2, 3, 4, 10, 11, 12, 14, 18, 20, 21, 22, 23, 26, 27, 30, 33, 34, 35, 36, 42, 43, 44, 46, 50, 52, 53, 54, 55, 58, 59, 65, 66, 67, 68, 74, 75, 76, 78, 82, 84, 85, 86, 87, 90, 91, 94, 97, 98, 99, 100, 106, 107, 108, 110, 114, 116, 117, 118, 119], 128), source: 'class' },
+      // blocks B1, B2, B3 (= B1), B4
+      pattern: patternFromHits({
+        0:'R', 1:'L', 2:'R', 3:'L', 4:'R', 8:'R', 10:'R', 11:'L', 12:'R', 14:'L', 18:'L', 20:'R', 21:'L', 22:'R', 23:'L', 24:'R', 26:'R', 27:'L', 28:'R', 30:'L',
+        32:'R', 33:'L', 34:'R', 35:'L', 36:'R', 40:'R', 42:'R', 43:'L', 44:'R', 46:'L', 50:'L', 52:'R', 53:'L', 54:'R', 55:'L', 56:'R', 58:'R', 59:'L', 60:'R',
+        64:'R', 65:'L', 66:'R', 67:'L', 68:'R', 72:'R', 74:'R', 75:'L', 76:'R', 78:'L', 82:'L', 84:'R', 85:'L', 86:'R', 87:'L', 88:'R', 90:'R', 91:'L', 92:'R', 94:'L',
+        96:'R', 97:'L', 98:'R', 99:'L', 100:'R', 104:'R', 106:'R', 107:'L', 108:'R', 110:'L', 114:'L', 116:'R', 117:'L', 118:'R', 119:'L', 120:'R'
+      }, 128), source: 'class' },
     { id: 'class-incrivel-partb-snare', name: 'Incrível – Part B', drum: 'Snare drum', bpm: 120,
       // main, middle, main, end
       pattern: patternFromHits({
