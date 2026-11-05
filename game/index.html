@@ -42,19 +42,20 @@
   .sub{ text-align:center; color:#555; font-size:15px; margin:0 0 24px; line-height:1.4; }
   .section-title{ font-weight:900; font-size:17px; margin:8px 0 12px; }
   .tabs{ display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:20px; }
-  .tab{ border:2px solid var(--line); background:#fff; border-radius:12px; padding:10px 6px; cursor:pointer;
+  .tab{ border:2px solid var(--line); background:#fff; border-radius:12px; padding:12px 6px; cursor:pointer;
     display:flex; flex-direction:column; align-items:center; gap:3px; color:var(--ink); -webkit-text-fill-color:var(--ink); }
   .tab span{ font-weight:900; font-size:15px; }
   .tab small{ font-size:12px; color:#666; -webkit-text-fill-color:#666; }
   .tab.on{ background:var(--cell-dark); border-color:var(--cell-dark); color:#fff; -webkit-text-fill-color:#fff; }
   .tab.on small{ color:#ccc; -webkit-text-fill-color:#ccc; }
-  .tab-icon{ height:60px; width:auto; display:block; margin:0 auto 4px; box-sizing:border-box; }
-  .tab-icon-snare{ padding:10px 0; }  /* same box height as Bass/Tom so the names line up; the drawing itself is smaller */
+  /* every icon sits in the same 72px box, so the tabs are the same height with the same padding top and bottom */
+  .tab-icon{ height:72px; width:auto; display:block; margin:0 auto 4px; box-sizing:border-box; }
+  .tab-icon-snare{ padding:16px 0; }
+  .tab-icon-tom{ padding:6px 0; }
   .tab.on .tab-icon{ filter:invert(1); }
   .stage-drum-logo{ display:block; height:130px; width:auto; margin:4px auto 0; }
   .stage-drum-logo-snare{ height:92px; margin-top:14px; margin-bottom:10px; }
   .stage-drum-logo-bass, .stage-drum-logo-tom{ height:165px; }
-  .tab-icon-bass{ height:72px; margin-top:-12px; }  /* bigger drawing, names stay lined up */
   .stage-drum-logo-bass{ height:185px; }
   .stage-card .level-num{ background:var(--accent); }
   .stage-card.locked .level-num{ background:var(--num); }
