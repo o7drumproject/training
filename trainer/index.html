@@ -859,6 +859,14 @@
         { drum: 'Tom', color: 'tom', pattern: patternFromSteps([
             3, 4, 6, 8, 11, 12, 14,  19, 20, 22, 24, 27, 28, 30,  35, 36, 38, 40, 43, 44, 46 ], 64) },
         { drum: 'Snare drum', color: 'snare', pattern: patternFromSteps([ 58, 60, 62 ], 64) }
+      ], source: 'class' },
+    // Incrível - Part A (Stage 2): 4 blocks, B1 - B2 - B3 (= B1) - B4.
+    // Bass drum is the part to play; Snare shown faded and sounded quieter.
+    { id: 'class-incrivel-parta-bassdrum', name: 'Incrível – Part A', drum: 'Bass drum', bpm: 120,
+      mainColor: 'bass',
+      pattern: patternFromSteps([0, 8, 16, 24, 28, 32, 40, 48, 56, 60, 64, 72, 80, 88, 92, 96, 104, 112, 120], 128),
+      layers: [
+        { drum: 'Snare drum', color: 'snare', pattern: patternFromSteps([1, 2, 3, 4, 10, 11, 12, 14, 18, 20, 21, 22, 23, 26, 27, 30, 33, 34, 35, 36, 42, 43, 44, 46, 50, 52, 53, 54, 55, 58, 59, 65, 66, 67, 68, 74, 75, 76, 78, 82, 84, 85, 86, 87, 90, 91, 94, 97, 98, 99, 100, 106, 107, 108, 110, 114, 116, 117, 118, 119], 128) }
       ], source: 'class' }
   ];
   var studentRhythms = []; // populated live from the shared db, when available
@@ -1787,6 +1795,7 @@ var TOM_B64 = "UklGRg5yAgBXQVZFZm10IBAAAAABAAIARKwAABCxAgAEABAAZGF0YfRtAgA1/Tb9K
     'class-bass-exercise-1': 1,
     'class-bass-exercise-2': 1,
     'class-incrivel-intro-bassdrum': 2,
+    'class-incrivel-parta-bassdrum': 2,
     'class-pombalense-parta-base-bassdrum': 3
   };
   // Stage flow: drums with stages first show one button per stage; tapping a stage shows its rhythms.
