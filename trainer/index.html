@@ -663,6 +663,7 @@
   </div>
 
   <div class="sequencer" id="sequencer"></div>
+  <div class="block-label" id="playerBlockLabel" hidden></div>
 </div>
 
 <div class="page" id="screen-composer">
@@ -699,6 +700,7 @@
   </div>
 
   <div class="sequencer" id="composerSequencer"></div>
+  <div class="block-label" id="composerBlockLabel" hidden></div>
 
   <div class="composer-actions">
     <button class="save-btn" id="saveRhythmBtn" type="button">Save Rhythm</button>
@@ -1299,6 +1301,7 @@ var TOM_B64 = "UklGRg5yAgBXQVZFZm10IBAAAAABAAIARKwAABCxAgAEABAAZGF0YfRtAgA1/Tb9K
     requestAnimationFrame(function(){
       fitQueued = false;
       if(seqEl.clientHeight === 0){ return; } // its screen isn't visible right now; goToScreen() re-fits when it becomes active
+      updateBlockLabel(seqEl); // show/hide the block label first, so the grid is sized for the space that's left
 
       var seqStyle = getComputedStyle(seqEl);
       var seqPadding = (parseFloat(seqStyle.paddingTop) || 0) + (parseFloat(seqStyle.paddingBottom) || 0);
@@ -1329,8 +1332,37 @@ var TOM_B64 = "UklGRg5yAgBXQVZFZm10IBAAAAABAAIARKwAABCxAgAEABAAZGF0YfRtAgA1/Tb9K
       seqEl.style.setProperty('--block-gap', blockGap + 'px');
       Array.prototype.forEach.call(seqEl.children, function(rowEl, i){ rowEl.classList.toggle('block-start', i > 0 && i % 8 === 0); });
       seqEl.classList.toggle('blocks', rows > 8);
+      updateBlockLabel(seqEl);
     });
   }
+
+  // ---------- Blocks (2 bars each) for long rhythms ----------
+  function blockLabelFor(seqEl){ return document.getElementById(seqEl.id === 'sequencer' ? 'playerBlockLabel' : 'composerBlockLabel'); }
+  function blockRowsOf(seqEl){ return Array.prototype.filter.call(seqEl.children, function(r, i){ return i % 8 === 0; }); }
+  function currentBlock(seqEl){
+    var starts = blockRowsOf(seqEl), sr = seqEl.getBoundingClientRect(), best = 0, bestD = Infinity;
+    starts.forEach(function(r, i){ var d = Math.abs(r.getBoundingClientRect().top - sr.top); if(d < bestD){ bestD = d; best = i; } });
+    return best;
+  }
+  function updateBlockLabel(seqEl){
+    var lab = blockLabelFor(seqEl); if(!lab) return;
+    var n = Math.ceil(seqEl.children.length / 8);
+    if(n <= 1){ lab.hidden = true; return; }
+    var b = currentBlock(seqEl);
+    lab.hidden = false;
+    lab.innerHTML = '<b>Block ' + (b + 1) + ' of ' + n + '</b> · bars ' + (b * 2 + 1) + '–' + (b * 2 + 2);
+  }
+  function scrollToBlock(seqEl, b){
+    var starts = blockRowsOf(seqEl); if(!starts[b]) return;
+    var sr = seqEl.getBoundingClientRect(), rr = starts[b].getBoundingClientRect();
+    var target = seqEl.scrollTop + (rr.top - sr.top) - (parseFloat(getComputedStyle(seqEl).paddingTop) || 0);
+    try{ seqEl.scrollTo({ top: target, behavior: 'smooth' }); }catch(e){ seqEl.scrollTop = target; }
+  }
+  ['sequencer', 'composerSequencer'].forEach(function(id){
+    var el = document.getElementById(id); if(!el) return;
+    var raf = null;
+    el.addEventListener('scroll', function(){ if(raf) return; raf = requestAnimationFrame(function(){ raf = null; updateBlockLabel(el); }); }, { passive: true });
+  });
 
   // ---------- Screens ----------
   var screens = {
@@ -1484,11 +1516,11 @@ var TOM_B64 = "UklGRg5yAgBXQVZFZm10IBAAAAABAAIARKwAABCxAgAEABAAZGF0YfRtAgA1/Tb9K
   // to 4 (64 steps) or drop back down to 2 - just the two sizes, no finer
   // steps in between.
   var COMPOSER_MEASURES_MIN = 2;
-  var COMPOSER_MEASURES_MAX = 4;
+  var COMPOSER_MEASURES_MAX = 8; // up to 4 blocks of 2 bars
   var composerMeasures = COMPOSER_MEASURES_MIN;
   function stepsForMeasures(measures){ return measures * 16; }
   function updateComposerMeasuresBtn(){
-    composerMeasuresBtn.textContent = (composerMeasures >= COMPOSER_MEASURES_MAX) ? '− 2 bars' : '+ 2 bars';
+    composerMeasuresBtn.textContent = (composerMeasures >= COMPOSER_MEASURES_MAX) ? 'Back to 2 bars' : '+ 2 bars';
   }
   composerMeasuresBtn.addEventListener('click', function(){
     stopPlayback();
@@ -1496,13 +1528,14 @@ var TOM_B64 = "UklGRg5yAgBXQVZFZm10IBAAAAABAAIARKwAABCxAgAEABAAZGF0YfRtAgA1/Tb9K
       composerMeasures = COMPOSER_MEASURES_MIN;
       state.pattern = state.pattern.slice(0, stepsForMeasures(composerMeasures));
     } else {
-      composerMeasures = COMPOSER_MEASURES_MAX;
+      composerMeasures = Math.min(COMPOSER_MEASURES_MAX, composerMeasures + 2);
       var target = stepsForMeasures(composerMeasures);
       while(state.pattern.length < target){ state.pattern.push(false); }
     }
     updateComposerMeasuresBtn();
     renderGrid(composerSequencerEl, state.pattern, true);
     fitToScreen(composerSequencerEl);
+    setTimeout(function(){ scrollToBlock(composerSequencerEl, Math.ceil(composerMeasures / 2) - 1); }, 60);
   });
 
   // Metronome click - one shared setting, mirrored on whichever screen's
@@ -1564,7 +1597,7 @@ var TOM_B64 = "UklGRg5yAgBXQVZFZm10IBAAAAABAAIARKwAABCxAgAEABAAZGF0YfRtAgA1/Tb9K
     state.pattern = existingRhythm ? existingRhythm.pattern.slice() : new Array(TOTAL_STEPS).fill(false);
     // Work out how many measures the pattern being edited actually has (2
     // or 4) so the +/- 2 bars button starts in the right state.
-    composerMeasures = (state.pattern.length > stepsForMeasures(COMPOSER_MEASURES_MIN)) ? COMPOSER_MEASURES_MAX : COMPOSER_MEASURES_MIN;
+    composerMeasures = Math.max(COMPOSER_MEASURES_MIN, Math.min(COMPOSER_MEASURES_MAX, Math.ceil(state.pattern.length / 16 / 2) * 2));
     updateComposerMeasuresBtn();
     renderGrid(composerSequencerEl, state.pattern, true);
     saveRhythmBtn.disabled = false;
@@ -1897,6 +1930,9 @@ var TOM_B64 = "UklGRg5yAgBXQVZFZm10IBAAAAABAAIARKwAABCxAgAEABAAZGF0YfRtAgA1/Tb9K
   #screen-player .sequencer, #screen-composer .sequencer{ min-height:0; overflow-y:auto; overflow-x:hidden; justify-content:safe center;
     /* the gap above/below the grid is a margin (outside the scroll area), so squares never slide under the buttons */
     margin-top:16px; padding-top:4px; margin-bottom:10px; padding-bottom:4px; }
+  .block-label{ text-align:center; font-family:'Lato',sans-serif; font-size:13px; color:#555; margin:-4px 0 6px; flex:0 0 auto; }
+  .block-label b{ color:#225EE2; font-weight:900; }
+  .block-label[hidden]{ display:none; }
   .sequencer.blocks{ scroll-snap-type:y mandatory; scroll-padding-top:4px; justify-content:flex-start; }
   .sequencer.blocks > .row:first-child, .sequencer .row.block-start{ scroll-snap-align:start; }
   .sequencer .row.block-start{ margin-top:var(--block-gap, 40px); }
