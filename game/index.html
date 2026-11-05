@@ -176,10 +176,11 @@
   #resultsForm .opt{ font-weight:400; color:#777; }
   #resultsForm input, #resultsForm textarea{ font:inherit; font-weight:400; font-size:16px; padding:10px 12px; border:1.5px solid #CFCFCF; border-radius:10px; background:#fff; }
   #resultsForm input:focus, #resultsForm textarea:focus{ outline:none; border-color:var(--accent); }
+  .mail-ico{ font-size:1.7em; line-height:0; vertical-align:-0.18em; margin-right:4px; }
   .rp-note{ font-size:12.5px; color:#666; margin:0; }
   .rp-error{ font-size:13px; color:var(--wrong); margin:0; font-weight:700; }
   #rpSend{ align-self:center; margin-top:4px; }
-  .rp-mail{ align-self:center; font-weight:900; color:var(--accent); text-decoration:underline; font-size:14.5px; cursor:pointer; }
+  .rp-mail{ align-self:center; background:none; border:none; font-family:inherit; font-weight:900; color:var(--accent); text-decoration:underline; font-size:14.5px; cursor:pointer; }
   .rp-later{ align-self:center; background:none; border:none; color:#777; font-size:13.5px; text-decoration:underline; cursor:pointer; padding:4px; }
   .rp-done p{ font-size:15px; margin:4px 0 16px; }
   .send-results-btn{ align-self:center; margin:0 0 14px; }
@@ -263,7 +264,7 @@
   <img class="stage-drum-logo" id="stageDrumLogo" alt="" aria-hidden="true">
   <h1 id="stageTitle">Stage 1</h1>
   <p class="sub" id="stageSub"></p>
-  <button class="pill dark send-results-btn" id="sendResultsBtn" type="button" hidden>✉ Send my results to my teacher</button>
+  <button class="pill dark send-results-btn" id="sendResultsBtn" type="button" hidden><span class="mail-ico" aria-hidden="true">✉</span> Send my results to my teacher</button>
   <div class="levels" id="levelList"></div>
   <div class="section-title">Your badges</div>
   <div class="badges" id="badgeShelf"></div>
@@ -334,11 +335,6 @@
   </div>
 </div>
 
-<!-- Netlify Forms: this hidden form lets Netlify detect the "stage-results" form at deploy time -->
-<form name="stage-results" data-netlify="true" netlify-honeypot="bot-field" hidden>
-  <input name="bot-field"><input name="name"><input name="email"><input name="drum"><input name="stage">
-  <input name="stars"><input name="levels"><input name="completed"><textarea name="message"></textarea>
-</form>
 
 <div class="overlay" id="resultsOverlay" hidden>
   <div class="results-pop" role="dialog" aria-modal="true" aria-labelledby="resultsTitle">
@@ -350,14 +346,14 @@
       <label>Your name<input id="rpName" type="text" autocomplete="name" maxlength="60" required></label>
       <label>Your email<input id="rpEmail" type="email" autocomplete="email" maxlength="100" required></label>
       <label>Message to your teacher <span class="opt">(optional)</span><textarea id="rpMsg" rows="2" maxlength="300"></textarea></label>
-      <p class="rp-note">Your name, email and results are sent to your O7 teacher.</p>
+      <p class="rp-note">Opens your email app with your results ready to send to your O7 teacher.</p>
       <p class="rp-error" id="rpError" hidden></p>
-      <button class="pill primary big" id="rpSend" type="submit">Send my results</button>
-      <a class="rp-mail" id="rpMailto" hidden>Open email instead</a>
+      <button class="pill primary big" id="rpSend" type="submit">Open email</button>
+      <button class="rp-mail" id="rpImage" type="button">Send as an image instead</button>
       <button class="rp-later" id="rpLater" type="button">Not now</button>
     </form>
     <div class="rp-done" id="rpDone" hidden>
-      <p><b>Sent!</b> Your teacher will get your results.</p>
+      <p id="rpDoneText"><b>Almost done!</b> Press <b>Send</b> in your email app.</p>
       <button class="pill primary big" id="rpDoneBtn" type="button">Continue</button>
     </div>
   </div>
@@ -988,10 +984,9 @@
     document.getElementById('rpEmail').value = saved.email || '';
     document.getElementById('rpMsg').value = '';
     document.getElementById('rpError').hidden = true;
-    document.getElementById('rpMailto').hidden = true;
     document.getElementById('resultsForm').hidden = false;
     document.getElementById('rpDone').hidden = true;
-    document.getElementById('rpSend').disabled = false; document.getElementById('rpSend').textContent = 'Send my results';
+    document.getElementById('rpSend').disabled = false; document.getElementById('rpSend').textContent = 'Open email';
     document.getElementById('resultsOverlay').hidden = false;
   }
   function closeResults(){ document.getElementById('resultsOverlay').hidden = true; renderStage(); }
@@ -1000,32 +995,87 @@
       (fields.message ? '\n\nMessage: ' + fields.message : '') + '\n\nCompleted: ' + fields.completed;
     return 'mailto:' + TEACHER_EMAIL + '?subject=' + encodeURIComponent('O7 Rhythm Game – ' + fields.name + ' finished ' + fields.drum + ' ' + fields.stage) + '&body=' + encodeURIComponent(body);
   }
-  document.getElementById('resultsForm').addEventListener('submit', function(e){
-    e.preventDefault();
+  function readForm(){
     var name = document.getElementById('rpName').value.trim(), email = document.getElementById('rpEmail').value.trim();
     var err = document.getElementById('rpError');
-    if(!name){ err.textContent = 'Please type your name.'; err.hidden = false; return; }
-    if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){ err.textContent = 'Please type a valid email.'; err.hidden = false; return; }
+    if(!name){ err.textContent = 'Please type your name.'; err.hidden = false; return null; }
+    if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){ err.textContent = 'Please type a valid email.'; err.hidden = false; return null; }
     err.hidden = true;
     try{ localStorage.setItem('o7-rhythm-game-student', JSON.stringify({ name: name, email: email })); }catch(e2){}
     var fields = resultsData(resultsCtx.section, resultsCtx.stage);
     fields.name = name; fields.email = email; fields.message = document.getElementById('rpMsg').value.trim();
-    var btn = document.getElementById('rpSend'); btn.disabled = true; btn.textContent = 'Sending…';
-    var body = new URLSearchParams(Object.assign({ 'form-name': 'stage-results', 'bot-field': '' }, fields)).toString();
-    var failed = function(){
-      btn.disabled = false; btn.textContent = 'Try again';
-      err.textContent = 'Couldn’t send from here. You can send it by email instead:'; err.hidden = false;
-      var a = document.getElementById('rpMailto'); a.href = mailtoLink(fields); a.hidden = false;
-    };
-    try{
-      fetch('/', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: body })
-        .then(function(r){
-          if(!r.ok) return failed();
-          var key = 'o7-rhythm-game-sent'; var sent = {}; try{ sent = JSON.parse(localStorage.getItem(key) || '{}'); }catch(e3){}
-          sent[resultsCtx.section + '-' + resultsCtx.stage] = Date.now(); try{ localStorage.setItem(key, JSON.stringify(sent)); }catch(e4){}
-          document.getElementById('resultsForm').hidden = true; document.getElementById('rpDone').hidden = false;
-        }).catch(failed);
-    }catch(e5){ failed(); }
+    return fields;
+  }
+  function markSent(){
+    var key = 'o7-rhythm-game-sent', sent = {}; try{ sent = JSON.parse(localStorage.getItem(key) || '{}'); }catch(e3){}
+    sent[resultsCtx.section + '-' + resultsCtx.stage] = Date.now(); try{ localStorage.setItem(key, JSON.stringify(sent)); }catch(e4){}
+  }
+  function showDone(html){
+    document.getElementById('rpDoneText').innerHTML = html;
+    document.getElementById('resultsForm').hidden = true; document.getElementById('rpDone').hidden = false;
+  }
+  // Default: open the student's email app with the results already written
+  document.getElementById('resultsForm').addEventListener('submit', function(e){
+    e.preventDefault();
+    var fields = readForm(); if(!fields) return;
+    markSent();
+    window.location.href = mailtoLink(fields);
+    showDone('<b>Almost done!</b> Your email app should open with your results. Press <b>Send</b> there.<br><span class="rp-note">Nothing opened? Email <b>' + TEACHER_EMAIL + '</b> yourself.</span>');
+  });
+
+  // Results card as an image (for the share sheet on phones, or saved to attach by hand)
+  var DRUM_COLORS = { bass:'#2F6BF0', snare:'#E04848', tom:'#22A862' };
+  function resultsImage(fields, done){
+    var W = 1080, H = 1350, cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+    var g = cv.getContext('2d'), col = DRUM_COLORS[resultsCtx.section] || '#222', F = '-apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
+    g.fillStyle = '#fff'; g.fillRect(0, 0, W, H);
+    g.fillStyle = col; g.fillRect(0, 0, W, 24); g.fillRect(0, H - 24, W, 24);
+    var levels = stageLevels(resultsCtx.section, resultsCtx.stage);
+    function text(s, x, y, size, weight, color, align){ g.font = (weight || 400) + ' ' + size + 'px ' + F; g.fillStyle = color || '#222'; g.textAlign = align || 'center'; g.fillText(s, x, y); }
+    function finish(){
+      text('Stage complete!', W/2, 310, 72, 900, '#111');
+      text(fields.name, W/2, 395, 54, 700, '#222');
+      text(fields.drum + ' · ' + fields.stage, W/2, 465, 46, 800, col);
+      text('★ ' + fields.stars + ' stars', W/2, 550, 58, 900, '#E8A317');
+      var y = 640;
+      levels.forEach(function(lv){
+        var n = getStars(lv), d = progress.done[lv.id], tr = (d && typeof d === 'object' && d.tries) ? d.tries : null;
+        g.fillStyle = '#F3F3F3'; g.beginPath(); if(g.roundRect){ g.roundRect(170, y - 50, W - 340, 72, 18); } else { g.rect(170, y - 50, W - 340, 72); } g.fill();
+        text('Level ' + lv.n, 210, y, 38, 800, '#222', 'left');
+        var sx = W - 210 - (tr ? 150 : 0) - 3 * 46;
+        for(var k = 0; k < 3; k++) text('★', sx + k * 46, y, 44, 900, k < n ? '#E8A317' : '#D6D6D6', 'left');
+        if(tr) text(tr + (tr === 1 ? ' try' : ' tries'), W - 210, y, 30, 600, '#777', 'right');
+        y += 80;
+      });
+      if(fields.message){ text('“' + fields.message.slice(0, 60) + (fields.message.length > 60 ? '…' : '') + '”', W/2, y + 15, 32, 400, '#444'); }
+      text(fields.completed, W/2, H - 60, 28, 600, '#999');
+      cv.toBlob(function(b){ done(b); }, 'image/png');
+    }
+    var logo = new Image();
+    logo.onload = function(){ var h = 150, w = logo.width * h / logo.height; if(w > 600){ w = 600; h = logo.height * w / logo.width; } g.drawImage(logo, (W - w)/2, 70, w, h); finish(); };
+    logo.onerror = finish;
+    logo.src = document.querySelector('.brand-logo') ? document.querySelector('.brand-logo').src : '';
+  }
+  document.getElementById('rpImage').addEventListener('click', function(){
+    var fields = readForm(); if(!fields) return;
+    var btn = this; btn.disabled = true;
+    resultsImage(fields, function(blob){
+      btn.disabled = false;
+      if(!blob) return;
+      var fname = 'O7 results - ' + fields.name + ' - ' + fields.drum + ' ' + fields.stage + '.png';
+      var file = null; try{ file = new File([blob], fname, { type: 'image/png' }); }catch(e){}
+      if(file && navigator.canShare && navigator.canShare({ files: [file] })){
+        navigator.share({ files: [file], title: 'O7 results', text: 'My O7 Rhythm Game results – for ' + TEACHER_EMAIL })
+          .then(function(){ markSent(); showDone('<b>Done!</b> Make sure it went to <b>' + TEACHER_EMAIL + '</b>.'); })
+          .catch(function(){});
+        return;
+      }
+      // No share sheet (most computers): save the picture, then open email to attach it
+      var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = fname; document.body.appendChild(a); a.click(); a.remove();
+      markSent();
+      window.location.href = mailtoLink(fields);
+      showDone('<b>Picture saved</b> to your downloads. Attach it to the email that opens and press <b>Send</b>.<br><span class="rp-note">Send it to <b>' + TEACHER_EMAIL + '</b>.</span>');
+    });
   });
   document.getElementById('rpLater').addEventListener('click', closeResults);
   document.getElementById('resultsClose').addEventListener('click', closeResults);
