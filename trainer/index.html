@@ -868,7 +868,14 @@
       pattern: patternFromSteps([0, 8, 16, 24, 28, 32, 40, 48, 56, 60, 64, 72, 80, 88, 92, 96, 104, 112, 120], 128),
       layers: [
         { drum: 'Snare drum', color: 'snare', pattern: patternFromSteps([1, 2, 3, 4, 10, 11, 12, 14, 18, 20, 21, 22, 23, 26, 27, 30, 33, 34, 35, 36, 42, 43, 44, 46, 50, 52, 53, 54, 55, 58, 59, 65, 66, 67, 68, 74, 75, 76, 78, 82, 84, 85, 86, 87, 90, 91, 94, 97, 98, 99, 100, 106, 107, 108, 110, 114, 116, 117, 118, 119], 128) }
-      ], source: 'class' }
+      ], source: 'class' },
+    // Incrível - Part B (Stage 2): main block x3, then the end block.
+    // Bass drum is the part to play (blue); Snare shown faded red.
+    { id: 'class-incrivel-partb-bassdrum', name: 'Incrível – Part B', drum: 'Bass drum', bpm: 120,
+      mainColor: 'bass',
+      pattern: patternFromSteps([0, 8, 12, 16, 24, 28, 32, 40, 44, 48, 56, 60, 64, 72, 76, 80, 88, 92, 96, 104, 108, 112], 128),
+      layers: [ { drum: 'Snare drum', color: 'snare', pattern: patternFromSteps([3, 6, 10, 14, 15, 19, 22, 26, 30, 31, 35, 38, 42, 46, 47, 51, 54, 58, 62, 63, 67, 70, 74, 78, 79, 83, 86, 90, 94, 95, 99, 102, 105, 107, 110, 122, 124, 126, 127], 128) } ],
+      source: 'class' }
   ];
   var studentRhythms = []; // populated live from the shared db, when available
 
@@ -1797,6 +1804,7 @@ var TOM_B64 = "UklGRg5yAgBXQVZFZm10IBAAAAABAAIARKwAABCxAgAEABAAZGF0YfRtAgA1/Tb9K
     'class-bass-exercise-2': 1,
     'class-incrivel-intro-bassdrum': 2,
     'class-incrivel-parta-bassdrum': 2,
+    'class-incrivel-partb-bassdrum': 2,
     'class-pombalense-parta-base-bassdrum': 3,
     // Snare drum
     'class-roll-exercice-1-snare': 1,
