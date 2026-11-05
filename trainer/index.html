@@ -1233,7 +1233,7 @@ var TOM_B64 = "UklGRg5yAgBXQVZFZm10IBAAAAABAAIARKwAABCxAgAEABAAZGF0YfRtAgA1/Tb9K
   // Shared by the player (read-only) and the composer (tap to toggle).
   function renderGrid(containerEl, pattern, editable, referencePattern, accentPattern, layers, mainColor){
     containerEl.innerHTML = '';
-    containerEl.classList.remove('main-bass');
+    containerEl.classList.remove('main-bass', 'main-snare', 'main-tom');
     if(mainColor) containerEl.classList.add('main-' + mainColor);
     var rows = pattern.length / 4; // 8 rows per 2 measures - 16 for a 4-measure rhythm
     for(var row = 0; row < rows; row++){
@@ -2030,12 +2030,16 @@ var TOM_B64 = "UklGRg5yAgBXQVZFZm10IBAAAAABAAIARKwAABCxAgAEABAAZGF0YfRtAgA1/Tb9K
   .home-btn{ position:absolute; top:9px; right:10px; height:36px; padding:0 14px 0 11px; border-radius:999px; border:none; background:#232323; color:#fff;
     display:inline-flex; align-items:center; gap:6px; font-family:'Lato',sans-serif; font-weight:900; font-size:15px; cursor:pointer; z-index:2; }
   .home-btn[hidden]{ display:none; }
-  /* main part in blue (e.g. Bass drum in Incrível), other drums faded */
-  .sequencer.main-bass .cell.active{ background:#0062E3; }
+  /* drum colours match the Rhythm Game badges: Bass blue, Snare red, Tom green.
+     The main part is full colour, the other drums are faded. */
+  .sequencer.main-bass .cell.active{ background:#2F6BF0; }
+  .sequencer.main-snare .cell.active{ background:#E04848; }
+  .sequencer.main-tom .cell.active{ background:#22A862; }
   .cell.layer{ opacity:.4; }
   .cell.layer .cell-hand{ color:#fff; }
-  .cell.layer-tom{ background:#232323; }
-  .cell.layer-snare{ background:#E87800; }
+  .cell.layer-tom{ background:#22A862; }
+  .cell.layer-snare{ background:#E04848; }
+  .cell.layer-bass{ background:#2F6BF0; }
   .stage-btn{ display:flex; align-items:center; gap:10px; width:100%; padding:18px 18px; border-radius:16px; border:none; cursor:pointer;
     background:#232323; color:#fff; font-family:'Lato',sans-serif; text-align:left; }
   .stage-btn .sb-name{ font-weight:900; font-size:22px; }
