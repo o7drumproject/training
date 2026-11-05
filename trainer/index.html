@@ -1711,7 +1711,8 @@ var TOM_B64 = "UklGRg5yAgBXQVZFZm10IBAAAAABAAIARKwAABCxAgAEABAAZGF0YfRtAgA1/Tb9K
   // Stage flow: drums with stages first show one button per stage; tapping a stage shows its rhythms.
   var STAGE_COUNT = 3;
   var chooserStage = null;
-  function drumHasStages(drum){ return CLASS_RHYTHMS.some(function(r){ return r.drum === drum && RHYTHM_STAGES[r.id]; }); }
+  function drumHasStages(drum){ return true; }
+  function stageOf(r){ return RHYTHM_STAGES[r.id] || 1; }  // not yet assigned -> Stage 1
   function renderClassList(){
     classRhythmListEl.innerHTML = '';
     var filtered = CLASS_RHYTHMS.filter(function(r){ return r.drum === selectedDrum; });
@@ -1735,7 +1736,7 @@ var TOM_B64 = "UklGRg5yAgBXQVZFZm10IBAAAAABAAIARKwAABCxAgAEABAAZGF0YfRtAgA1/Tb9K
       chooserDrumLabel.textContent = selectedDrum;
       for(var s = 1; s <= STAGE_COUNT; s++){
         (function(st){
-          var count = filtered.filter(function(r){ return RHYTHM_STAGES[r.id] === st; }).length;
+          var count = filtered.filter(function(r){ return stageOf(r) === st; }).length;
           var b = document.createElement('button'); b.type = 'button';
           b.className = 'stage-btn' + (count ? '' : ' empty');
           b.innerHTML = '<span class="sb-name">Stage ' + st + '</span><span class="sb-meta">' + (count ? count + ' rhythm' + (count > 1 ? 's' : '') : 'Coming soon') + '</span><span class="sb-arrow" aria-hidden="true">›</span>';
@@ -1749,7 +1750,7 @@ var TOM_B64 = "UklGRg5yAgBXQVZFZm10IBAAAAABAAIARKwAABCxAgAEABAAZGF0YfRtAgA1/Tb9K
       if(classTitle) classTitle.textContent = 'Stage ' + chooserStage;
       if(creations) creations.hidden = true;
       chooserDrumLabel.textContent = selectedDrum + ' · Stage ' + chooserStage;
-      filtered.filter(function(r){ return RHYTHM_STAGES[r.id] === chooserStage; })
+      filtered.filter(function(r){ return stageOf(r) === chooserStage; })
         .forEach(function(r){ classRhythmListEl.appendChild(makeRhythmCard(r)); });
     }
   }
