@@ -794,7 +794,8 @@
       // Bass drum during playback - the same line as the "2Bar" rhythm.
       referencePattern: patternFromSteps([0,8,16,20,24]),
       source: 'class' },
-    { id: 'class-tom-solo-partb-tom', name: 'Tom Solo - Incrivel Part B', drum: 'Tom', bpm: 120,
+    { id: 'class-tom-solo-partb-tom', name: 'Incrível – Part B Solo', drum: 'Tom', bpm: 120,
+      mainColor: 'tom', // Tom in green (the part to play), Snare faded red
       // A 4-measure (64-step) Tom part, played against the "Incrível B"
       // Snare drum part shown as the blue reference line - looped twice
       // since Incrível B is itself only 2 measures long - and sounded on
@@ -806,11 +807,10 @@
         40:'R', 41:'L', 43:'L', 44:'R', 46:'L',
         48:'R', 49:'L', 51:'L', 52:'R', 54:'L', 58:'L', 60:'R', 62:'R', 63:'L'
       }, 64),
-      referencePattern: repeatPattern(patternFromHits({
+      layers: [ { drum: 'Snare drum', color: 'snare', pattern: repeatPattern(patternFromHits({
         0:'R', 3:'L', 6:'L', 8:'R', 10:'L', 12:'R', 14:'R', 15:'L',
         16:'R', 19:'L', 22:'L', 24:'R', 26:'L', 28:'R', 30:'R', 31:'L'
-      }), 64),
-      referenceDrum: 'Snare drum',
+      }), 64) } ],
       source: 'class' },
     { id: 'class-pombalense-parta-base-snare', name: 'Pombalense - Part A Base', drum: 'Snare drum', bpm: 120,
       // Every active step is a Snare hand hit (R/L), all shown as plain
@@ -1801,7 +1801,11 @@ var TOM_B64 = "UklGRg5yAgBXQVZFZm10IBAAAAABAAIARKwAABCxAgAEABAAZGF0YfRtAgA1/Tb9K
     // Snare drum
     'class-roll-exercice-1-snare': 1,
     'class-incrivel-partb-snare': 2,
-    'class-pombalense-parta-base-snare': 3
+    'class-pombalense-parta-base-snare': 3,
+    // Tom
+    'class-taratah-tom': 1,
+    'class-tara-tah-2bar-tom': 1,
+    'class-tom-solo-partb-tom': 2
   };
   // Stage flow: drums with stages first show one button per stage; tapping a stage shows its rhythms.
   var STAGE_COUNT = 3;
