@@ -1887,6 +1887,8 @@ var TOM_B64 = "UklGRg5yAgBXQVZFZm10IBAAAAABAAIARKwAABCxAgAEABAAZGF0YfRtAgA1/Tb9K
   /* keep the grid inside the frame: the sequencer only gets the space left in the frame,
      and fitToScreen sizes the squares to that space */
   #screen-player .sequencer, #screen-composer .sequencer{ min-height:0; overflow-y:auto; overflow-x:hidden; justify-content:safe center;
+    /* the gap above/below the grid is a margin (outside the scroll area), so squares never slide under the buttons */
+    margin-top:16px; padding-top:4px; margin-bottom:10px; padding-bottom:4px;
     -webkit-overflow-scrolling:touch; overscroll-behavior:contain; }
   /* back buttons: black pill with label, inside the frame */
   .back-btn{ position:absolute; top:9px; left:10px; width:auto; height:36px; padding:0 15px 0 11px; gap:5px;
