@@ -770,6 +770,11 @@
       }), source: 'class' },
     { id: 'class-2bar-bassdrum', name: '2Bar', drum: 'Bass drum', bpm: 100,
       pattern: patternFromSteps([0,8,16,20,24]), source: 'class' },
+    // copied from the Rhythm Game, Bass Stage 1 Levels 3 and 4
+    { id: 'class-bass-exercise-1', name: 'Practice rhythm 1', drum: 'Bass drum', bpm: STANDARD_BPM,
+      pattern: patternFromSteps([0,6,8, 16,22,24]), source: 'class' },
+    { id: 'class-bass-exercise-2', name: 'Practice rhythm 2', drum: 'Bass drum', bpm: STANDARD_BPM,
+      pattern: patternFromSteps([0,6,8,12, 20,24]), source: 'class' },
     { id: 'class-roll-exercice-1-snare', name: 'Roll exercice 1', drum: 'Snare drum', bpm: STANDARD_BPM,
       pattern: patternFromHits({
         0:'R', 2:'L', 4:'R', 6:'L', 8:'R', 10:'L', 12:'R', 13:'L', 14:'R', 15:'L',
@@ -1757,6 +1762,8 @@ var TOM_B64 = "UklGRg5yAgBXQVZFZm10IBAAAAABAAIARKwAABCxAgAEABAAZGF0YfRtAgA1/Tb9K
     'class-chula-bassdrum': 1,
     'class-2bar-bassdrum': 1,
     'class-moonstep-bassdrum': 1,
+    'class-bass-exercise-1': 1,
+    'class-bass-exercise-2': 1,
     'class-pombalense-parta-base-bassdrum': 3
   };
   // Stage flow: drums with stages first show one button per stage; tapping a stage shows its rhythms.
