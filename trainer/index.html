@@ -837,6 +837,10 @@
       // Bass drum during playback - the same line as the "2Bar" rhythm.
       referencePattern: patternFromSteps([0,8,16,20,24]),
       source: 'class' },
+    { id: 'class-tom-exercice-1', name: 'Exercice rhythm 1', drum: 'Tom', bpm: STANDARD_BPM,
+      pattern: patternFromHits({ 3:'L', 4:'R', 6:'L', 11:'L', 12:'R', 14:'L', 19:'L', 20:'R', 22:'L', 27:'L', 28:'R', 30:'L' }), source: 'class' },
+    { id: 'class-tom-exercice-2', name: 'Exercice rhythm 2', drum: 'Tom', bpm: STANDARD_BPM,
+      pattern: patternFromHits({ 0:'R', 1:'L', 2:'R', 3:'L', 4:'R', 8:'R', 9:'L', 10:'R', 11:'L', 12:'R', 16:'R', 17:'L', 18:'R', 19:'L', 20:'R', 24:'R', 25:'L', 26:'R', 27:'L', 28:'R' }), source: 'class' },
     { id: 'class-tom-solo-partb-tom', name: 'Incrível – Part B Solo', drum: 'Tom', bpm: 120,
       mainColor: 'tom', // Tom in green (the part to play), Snare faded red
       // A 4-measure (64-step) Tom part, played against the "Incrível B"
@@ -1862,6 +1866,8 @@ var TOM_B64 = "UklGRg5yAgBXQVZFZm10IBAAAAABAAIARKwAABCxAgAEABAAZGF0YfRtAgA1/Tb9K
     // Tom
     'class-taratah-tom': 1,
     'class-tara-tah-2bar-tom': 1,
+    'class-tom-exercice-1': 1,
+    'class-tom-exercice-2': 1,
     'class-incrivel-intro-tom': 2,
     'class-incrivel-parta-tom': 2,
     'class-incrivel-partb-tom': 2,
