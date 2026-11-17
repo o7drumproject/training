@@ -872,8 +872,10 @@
       accentDrum: 'Bass drum',
       source: 'class' },
     { id: 'class-pombalense-partb-snare', name: 'Pombalense - Part B', drum: 'Snare drum', bpm: 120,
-      // bar 2 repeats bar 1
-      pattern: patternFromHits({ 3:'R', 6:'R', 10:'R', 11:'L', 14:'R', 19:'R', 22:'R', 26:'R', 27:'L', 30:'R' }), source: 'class' },
+      // 4 bars: Snare plays bars 1-3 (same bar), stops at the end of bar 3; Bass drum shown faded
+      pattern: patternFromHits({ 3:'R', 6:'R', 10:'R', 11:'L', 14:'R', 19:'R', 22:'R', 26:'R', 27:'L', 30:'R', 35:'R', 38:'R', 42:'R', 43:'L', 46:'R' }, 64),
+      layers: [ { drum: 'Bass drum', color: 'bass', pattern: patternFromSteps([0, 8, 12, 16, 24, 28, 30, 32, 40, 44, 48], 64) } ],
+      source: 'class' },
     { id: 'class-pombalense-parta-base-bassdrum', name: 'Pombalense - Part A Base', drum: 'Bass drum', bpm: 120,
       // The same rhythm as the Snare drum version above, seen from the
       // Bass drum player's side: the Bass drum's own hits (the steps shown
