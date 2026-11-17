@@ -480,6 +480,7 @@
   .cell.playhead{ box-shadow:0 0 0 3px var(--accent) inset; }
   .cell.pop{ animation:pop 0.2s ease; }
 
+  .flam-grace{ font-size:.6em; vertical-align:.45em; margin-right:1px; opacity:.85; }
   .cell-hand{
     font-family:'Lato', sans-serif;
     font-weight:900;
@@ -878,8 +879,8 @@
                 { drum: 'Tom', color: 'tom', pattern: patternFromSteps([10, 11, 12, 14, 22, 24, 26, 27, 28, 30, 42, 43, 44, 46, 54, 56, 57, 58, 59, 60, 62], 64) } ],
       source: 'class' },
     { id: 'class-pombalense-partb-tom', name: 'Pombalense - Part B', drum: 'Tom', bpm: 120,
-      // Tom in black with hands; Bass and Snare shown faded
-      pattern: patternFromHits({ 10:'R', 11:'L', 12:'R', 14:'L', 22:'L', 24:'R', 26:'R', 27:'L', 28:'R', 30:'L', 42:'R', 43:'L', 44:'R', 46:'L', 54:'L', 56:'R', 57:'L', 58:'R', 59:'L', 60:'R', 62:'L' }, 64),
+      // Tom in black with hands (last note is a flam); Bass and Snare shown faded
+      pattern: patternFromHits({ 10:'R', 11:'L', 12:'R', 14:'L', 26:'R', 27:'L', 28:'R', 42:'R', 43:'L', 44:'R', 46:'L', 60:'fR' }, 64),
       layers: [ { drum: 'Bass drum', color: 'bass', pattern: patternFromSteps([0, 8, 12, 16, 24, 28, 30, 32, 40, 44, 48], 64) },
                 { drum: 'Snare drum', color: 'snare', pattern: patternFromSteps([3, 6, 10, 11, 14, 19, 22, 26, 27, 30, 35, 38, 42, 43, 46], 64) } ],
       source: 'class' },
@@ -1209,7 +1210,11 @@ var TOM_B64 = "UklGRg5yAgBXQVZFZm10IBAAAAABAAIARKwAABCxAgAEABAAZGF0YfRtAgA1/Tb9K
 
   function scheduleStep(step, time){
     if(clickEnabled && step % 4 === 0){ playClick(time, step % 16 === 0); }
-    if(state.pattern[step]){ playDrumHit(time, 1); }
+    if(state.pattern[step]){
+      // flam ('fR' / 'fL'): a soft grace note just before the main hit
+      if(state.pattern[step] === 'fR' || state.pattern[step] === 'fL'){ playDrumHit(Math.max(time - 0.035, audioCtx.currentTime), 0.45); }
+      playDrumHit(time, 1);
+    }
     if(activeReferencePattern && activeReferencePattern[step]){ playReferenceHit(time, 0.85); }
     if(activeLayers){ activeLayers.forEach(function(l){ if(l.pattern[step]) playByDrumName(l.drum, time, l.gain || 0.55); }); }
     if(state.pattern[step] && activeAccentPattern && activeAccentPattern[step]){ playAccentHit(time, 0.95); }
@@ -1354,13 +1359,16 @@ var TOM_B64 = "UklGRg5yAgBXQVZFZm10IBAAAAABAAIARKwAABCxAgAEABAAZGF0YfRtAgA1/Tb9K
           }
           var layerValue = layerHit ? layerHit.pattern[step] : null;
           var handLabel = (value === 'R' || value === 'L') ? value : ((layerValue === 'R' || layerValue === 'L') ? layerValue : '');
+          var isFlam = (value === 'fR' || value === 'fL');
+          if(isFlam) handLabel = value.charAt(1);
           var cell = document.createElement(editable ? 'button' : 'div');
           cell.className = 'cell' + (isHit ? ' active' : '') + (isReference ? ' reference' : '') + (layerHit ? ' layer layer-' + layerHit.color : '') + (editable ? ' editable' : '');
           cell.setAttribute('data-step', step);
           if(handLabel){
             var handEl = document.createElement('span');
             handEl.className = 'cell-hand';
-            handEl.textContent = handLabel;
+            if(isFlam){ handEl.innerHTML = '<small class="flam-grace">' + (handLabel === 'R' ? 'l' : 'r') + '</small>' + handLabel; }
+            else handEl.textContent = handLabel;
             handEl.setAttribute('aria-hidden', 'true');
             cell.appendChild(handEl);
           }
