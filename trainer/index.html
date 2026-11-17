@@ -774,11 +774,12 @@
     { id: 'class-chula-bassdrum', name: 'Chula', drum: 'Bass drum', bpm: STANDARD_BPM,
       pattern: patternFromSteps([0,4,8,16,20,22,24]), source: 'class' },
     { id: 'class-incrivel-intro-tom', name: 'Incrível – Intro', drum: 'Tom', bpm: 120,
-      // copy of the Bass drum Intro without the Bass notes; Snare shown faded red
-      pattern: patternFromSteps([
-        0, 3, 4, 6, 8, 11, 12, 14,  16, 19, 20, 22, 24, 27, 28, 30,  32, 35, 36, 38, 40, 43, 44, 46,  48 ], 64),
-      layers: [ { drum: 'Snare drum', color: 'snare', pattern: patternFromSteps([ 58, 60, 62 ], 64) } ],
-      source: 'class' },
+      // from the score (4 bars): Tom in black with hands; Bass and Snare shown faded
+      pattern: patternFromHits({ 0:'R', 3:'L', 4:'R', 6:'L', 8:'R', 11:'L', 12:'R', 14:'L',  16:'R', 19:'L', 20:'R', 22:'L', 24:'R', 27:'L', 28:'R', 30:'L',
+        32:'R', 35:'L', 36:'R', 38:'L', 40:'R', 43:'L', 44:'R', 46:'L',  48:'R' }, 64),
+      layers: [ { drum: 'Bass drum', color: 'bass', pattern: patternFromSteps([0, 16, 32, 48], 64) },
+                { drum: 'Snare drum', color: 'snare', pattern: patternFromSteps([10, 12, 14, 26, 28, 30, 42, 44, 46, 58, 60, 62], 64) } ],
+      score: true, source: 'class' },
     { id: 'class-incrivel-parta-tom', name: 'Incrível – Part A', drum: 'Tom', bpm: 120,
       // Bass drum Part A notes played on the Tom; Snare (Snare drum Part A) shown faded red
       pattern: patternFromSteps([0, 8, 16, 24, 28, 32, 40, 48, 56, 60, 64, 72, 80, 88, 92, 96, 104, 112, 120], 128),
