@@ -1431,7 +1431,7 @@ var TOM_B64 = "UklGRg5yAgBXQVZFZm10IBAAAAABAAIARKwAABCxAgAEABAAZGF0YfRtAgA1/Tb9K
           staves.push(st); voices.push(voice); beamsAll.push(beams); groups.push(part.p.main);
         });
         // align all drums of this bar to the same columns
-        var startX = Math.max.apply(null, staves.map(function(s){ return s.getNoteStartX(); })) + (bar === 0 ? 22 : 0);
+        var startX = Math.max.apply(null, staves.map(function(s){ return s.getNoteStartX(); }));
         staves.forEach(function(s){ s.setNoteStartX(startX); });
         var fmt = new VF.Formatter();
         voices.forEach(function(v){ fmt.joinVoices([v]); });   // each drum is on its own staff
@@ -1439,12 +1439,6 @@ var TOM_B64 = "UklGRg5yAgBXQVZFZm10IBAAAAABAAIARKwAABCxAgAEABAAZGF0YfRtAgA1/Tb9K
         staves.forEach(function(st, pi){
           var g = ctx.openGroup(groups[pi] ? 'main' : 'dim');
           st.setContext(ctx).draw();
-          if(bar === 0){
-            ctx.save(); ctx.setFont('Lato, sans-serif', 17, '900'); ctx.setFillStyle(groups[pi] ? '#111' : '#9a9a9a');
-            var tx = startX - 20, my = st.getYForLine(2);
-            ctx.fillText('4', tx, my - 2); ctx.fillText('4', tx, my + 15);
-            ctx.restore();
-          }
           voices[pi].draw(ctx, st);
           beamsAll[pi].forEach(function(b){ b.setContext(ctx).draw(); });
           // hands (r / l) written just under the rhythm's own staff
