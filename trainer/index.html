@@ -877,6 +877,12 @@
       layers: [ { drum: 'Bass drum', color: 'bass', pattern: patternFromSteps([0, 8, 12, 16, 24, 28, 30, 32, 40, 44, 48], 64) },
                 { drum: 'Tom', color: 'tom', pattern: patternFromSteps([10, 11, 12, 14, 22, 24, 26, 27, 28, 30, 42, 43, 44, 46, 54, 56, 57, 58, 59, 60, 62], 64) } ],
       source: 'class' },
+    { id: 'class-pombalense-partb-tom', name: 'Pombalense - Part B', drum: 'Tom', bpm: 120,
+      // Tom in black with hands; Bass and Snare shown faded
+      pattern: patternFromHits({ 10:'R', 11:'L', 12:'R', 14:'L', 22:'L', 24:'R', 26:'R', 27:'L', 28:'R', 30:'L', 42:'R', 43:'L', 44:'R', 46:'L', 54:'L', 56:'R', 57:'L', 58:'R', 59:'L', 60:'R', 62:'L' }, 64),
+      layers: [ { drum: 'Bass drum', color: 'bass', pattern: patternFromSteps([0, 8, 12, 16, 24, 28, 30, 32, 40, 44, 48], 64) },
+                { drum: 'Snare drum', color: 'snare', pattern: patternFromSteps([3, 6, 10, 11, 14, 19, 22, 26, 27, 30, 35, 38, 42, 43, 46], 64) } ],
+      source: 'class' },
     { id: 'class-pombalense-parta-base-bassdrum', name: 'Pombalense - Part A Base', drum: 'Bass drum', bpm: 120,
       // The same rhythm as the Snare drum version above, seen from the
       // Bass drum player's side: the Bass drum's own hits (the steps shown
@@ -888,6 +894,12 @@
       mainColor: 'bass',
       pattern: patternFromSteps([0, 3, 12, 16, 19, 28]),
       layers: [ { drum: 'Snare drum', color: 'snare', pattern: patternFromSteps([2, 6, 8, 10, 11, 14, 18, 22, 24, 26, 27]) } ],
+      source: 'class' },
+    { id: 'class-pombalense-partb-bassdrum', name: 'Pombalense - Part B', drum: 'Bass drum', bpm: 120,
+      // Bass in black; Snare and Tom shown faded
+      pattern: patternFromSteps([0, 8, 12, 16, 24, 28, 30, 32, 40, 44, 48], 64),
+      layers: [ { drum: 'Snare drum', color: 'snare', pattern: patternFromSteps([3, 6, 10, 11, 14, 19, 22, 26, 27, 30, 35, 38, 42, 43, 46], 64) },
+                { drum: 'Tom', color: 'tom', pattern: patternFromSteps([10, 11, 12, 14, 22, 24, 26, 27, 28, 30, 42, 43, 44, 46, 54, 56, 57, 58, 59, 60, 62], 64) } ],
       source: 'class' },
     { id: 'class-moonstep-bassdrum', name: 'Moonstep', drum: 'Bass drum', bpm: 100,
       // 4-measure rhythm: the first measure repeats three times, then the
@@ -1861,6 +1873,7 @@ var TOM_B64 = "UklGRg5yAgBXQVZFZm10IBAAAAABAAIARKwAABCxAgAEABAAZGF0YfRtAgA1/Tb9K
     'class-incrivel-parta-bassdrum': 2,
     'class-incrivel-partb-bassdrum': 2,
     'class-pombalense-parta-base-bassdrum': 3,
+    'class-pombalense-partb-bassdrum': 3,
     // Snare drum
     'class-roll-exercice-0-snare': 1,
     'class-roll-exercice-1-snare': 1,
@@ -1878,7 +1891,8 @@ var TOM_B64 = "UklGRg5yAgBXQVZFZm10IBAAAAABAAIARKwAABCxAgAEABAAZGF0YfRtAgA1/Tb9K
     'class-incrivel-intro-tom': 2,
     'class-incrivel-parta-tom': 2,
     'class-incrivel-partb-tom': 2,
-    'class-tom-solo-partb-tom': 2
+    'class-tom-solo-partb-tom': 2,
+    'class-pombalense-partb-tom': 3,
   };
   // Stage flow: drums with stages first show one button per stage; tapping a stage shows its rhythms.
   var STAGE_COUNT = 3;
