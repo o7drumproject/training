@@ -1367,7 +1367,7 @@ var TOM_B64 = "UklGRg5yAgBXQVZFZm10IBAAAAABAAIARKwAABCxAgAEABAAZGF0YfRtAgA1/Tb9K
       hits.forEach(function(h, j){
         var end = (j + 1 < hits.length) ? hits[j + 1] : 4, v = pattern[base + h];
         var hand = (typeof v === 'string') ? v.replace('f', '') : '';
-        ev.push({ step: base + h, len: end - h, rest: false, hand: hand.toLowerCase() });
+        ev.push({ step: base + h, len: end - h, rest: false, hand: hand.toUpperCase() });
       });
     }
     return ev;
@@ -1376,7 +1376,8 @@ var TOM_B64 = "UklGRg5yAgBXQVZFZm10IBAAAAABAAIARKwAABCxAgAEABAAZGF0YfRtAgA1/Tb9K
   function renderScore(rhythm){
     var VF = Vex.Flow;
     var old = scoreViewEl.querySelector('svg'); if(old) old.remove();
-    var W = scoreViewEl.clientWidth || 360;
+    var SC = 0.86;   // notes drawn a little smaller than VexFlow's default
+    var Wpx = scoreViewEl.clientWidth || 360, W = Wpx / SC;
     var len = rhythm.pattern.length, bars = Math.ceil(len / 16);
     // staves, top to bottom as on the printed score
     var parts = [], byDrum = {};
@@ -1391,8 +1392,9 @@ var TOM_B64 = "UklGRg5yAgBXQVZFZm10IBAAAAABAAIARKwAABCxAgAEABAAZGF0YfRtAgA1/Tb9K
     var sysH = acc + 10, top = 0;
     var H = top + sysCount * sysH;
     var renderer = new VF.Renderer(scoreViewEl, VF.Renderer.Backends.SVG);
-    renderer.resize(W, H);
+    renderer.resize(Wpx, Math.ceil(H * SC));
     var ctx = renderer.getContext();
+    ctx.scale(SC, SC);
     var lines = [{visible:false},{visible:false},{visible:true},{visible:false},{visible:false}];
     var map = [];   // per system: { y, h, cols: [{step, x}] }
 
@@ -1408,7 +1410,6 @@ var TOM_B64 = "UklGRg5yAgBXQVZFZm10IBAAAAABAAIARKwAABCxAgAEABAAZGF0YfRtAgA1/Tb9K
           var st = new VF.Stave(bx, y0 + offs[pi] + 6, barW, { space_above_staff_ln: 0, space_below_staff_ln: 0 });
           st.setConfigForLines(lines);
           if(bi === 0) st.addClef('percussion');
-          if(bar === 0) st.addTimeSignature('4/4');
           if(bar === bars - 1) st.setEndBarType(VF.Barline.type.END);
           var notes = barEvents(part.p.pattern, bar * 16).map(function(e){
             var n;
@@ -1430,7 +1431,7 @@ var TOM_B64 = "UklGRg5yAgBXQVZFZm10IBAAAAABAAIARKwAABCxAgAEABAAZGF0YfRtAgA1/Tb9K
           staves.push(st); voices.push(voice); beamsAll.push(beams); groups.push(part.p.main);
         });
         // align all drums of this bar to the same columns
-        var startX = Math.max.apply(null, staves.map(function(s){ return s.getNoteStartX(); }));
+        var startX = Math.max.apply(null, staves.map(function(s){ return s.getNoteStartX(); })) + (bar === 0 ? 22 : 0);
         staves.forEach(function(s){ s.setNoteStartX(startX); });
         var fmt = new VF.Formatter();
         voices.forEach(function(v){ fmt.joinVoices([v]); });   // each drum is on its own staff
@@ -1438,12 +1439,18 @@ var TOM_B64 = "UklGRg5yAgBXQVZFZm10IBAAAAABAAIARKwAABCxAgAEABAAZGF0YfRtAgA1/Tb9K
         staves.forEach(function(st, pi){
           var g = ctx.openGroup(groups[pi] ? 'main' : 'dim');
           st.setContext(ctx).draw();
+          if(bar === 0){
+            ctx.save(); ctx.setFont('Lato, sans-serif', 17, '900'); ctx.setFillStyle(groups[pi] ? '#111' : '#9a9a9a');
+            var tx = startX - 20, my = st.getYForLine(2);
+            ctx.fillText('4', tx, my - 2); ctx.fillText('4', tx, my + 15);
+            ctx.restore();
+          }
           voices[pi].draw(ctx, st);
           beamsAll[pi].forEach(function(b){ b.setContext(ctx).draw(); });
           // hands (r / l) written just under the rhythm's own staff
           voices[pi].getTickables().forEach(function(n){
             if(!n._o7hand) return;
-            ctx.save(); ctx.setFont('Lato, sans-serif', 12, 'bold'); ctx.setFillStyle('#333');
+            ctx.save(); ctx.setFont('Lato, sans-serif', 13, '700'); ctx.setFillStyle('#222');
             ctx.fillText(n._o7hand, n.getAbsoluteX() + 2, st.getYForLine(2) + 22);
             ctx.restore();
           });
@@ -1456,14 +1463,15 @@ var TOM_B64 = "UklGRg5yAgBXQVZFZm10IBAAAAABAAIARKwAABCxAgAEABAAZGF0YfRtAgA1/Tb9K
       }
       // drum names at the start of each system
       parts.forEach(function(part, pi){
-        ctx.save(); ctx.setFont('Lato, sans-serif', 11, part.p.main ? 'bold' : 'normal');
-        ctx.setFillStyle(part.p.main ? '#111' : '#999');
+        ctx.save(); ctx.setFont('Lato, sans-serif', part.p.main ? 14 : 12, part.p.main ? '900' : '700');
+        ctx.setFillStyle(part.p.main ? '#111' : '#9a9a9a');
         ctx.fillText(DRUM_SHORT[part.drum] || '', 2, y0 + offs[pi] + 6 + 20 + 4);
         ctx.restore();
       });
       var list = Object.keys(cols).map(function(k){ return { step: +k, x: cols[k] }; }).sort(function(a, b){ return a.step - b.step; });
       map.push({ y: y0, h: sysH - 10, cols: list });
     }
+    map.forEach(function(m){ m.y *= SC; m.h *= SC; m.cols.forEach(function(c){ c.x *= SC; }); });
     scoreMap = map; map.perSys = perSys;
     scoreRenderedFor = rhythm;
     scoreViewEl.appendChild(scoreCursorEl);
@@ -2278,7 +2286,7 @@ var TOM_B64 = "UklGRg5yAgBXQVZFZm10IBAAAAABAAIARKwAABCxAgAEABAAZGF0YfRtAgA1/Tb9K
     margin-top:16px; padding-top:4px; margin-bottom:10px; padding-bottom:4px; }
 
   /* written score view (rhythms with score:true) */
-  .score-view{ position:relative; flex:1 1 auto; min-height:0; overflow-y:auto; overflow-x:hidden; margin:16px 0 10px; background:#fff; border-radius:14px; padding:6px 0; }
+  .score-view{ position:relative; flex:1 1 auto; min-height:0; overflow-y:auto; overflow-x:hidden; margin:16px 0 10px; padding:6px 0; }
   .score-view[hidden]{ display:none; }
   .score-view svg{ display:block; }
   .score-view .vf-dim{ opacity:.38; }
