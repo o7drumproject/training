@@ -891,8 +891,10 @@
                 { drum: 'Snare drum', color: 'snare', pattern: patternFromSteps([3, 6, 10, 11, 14, 19, 22, 26, 27, 30, 35, 38, 42, 43, 46], 64) } ],
       source: 'class' },
     { id: 'class-pombalense-bridge-tom', name: 'Pombalense - Bridge', drum: 'Tom', bpm: 125,
-      // taken from the audio recording (125 BPM, 8 bars); no hands yet
-      pattern: patternFromSteps([0, 2, 3, 6, 8, 10, 11, 12, 14, 16, 18, 19, 22, 24, 26, 27, 28, 30, 32, 34, 35, 38, 40, 42, 43, 44, 46, 48, 54, 55, 56, 58, 59, 60, 62, 63, 64, 66, 67, 70, 72, 74, 75, 76, 78, 80, 83, 86, 88, 90, 91, 92, 94, 96, 98, 99, 102, 104, 106, 107, 108, 110, 112, 118, 124], 128), source: 'class' },
+      // from the score (8 bars): Tom in black with hands, Bass drum shown faded
+      pattern: patternFromHits({ 0:'R', 2:'R', 3:'L', 6:'L', 8:'R', 10:'R', 11:'L', 12:'R', 14:'L', 16:'R', 18:'R', 19:'L', 22:'L', 24:'R', 26:'R', 27:'L', 28:'R', 30:'L', 32:'R', 34:'R', 35:'L', 38:'L', 40:'R', 42:'R', 43:'L', 44:'R', 46:'L', 48:'R', 54:'R', 55:'L', 58:'R', 59:'L', 62:'R', 63:'L', 64:'R', 66:'R', 67:'L', 70:'L', 72:'R', 74:'R', 75:'L', 76:'R', 78:'L', 80:'R', 83:'R', 86:'L', 88:'R', 90:'R', 91:'L', 92:'R', 94:'L', 96:'R', 98:'R', 99:'L', 102:'L', 104:'R', 106:'R', 107:'L', 108:'R', 110:'L', 112:'R', 118:'R', 124:'R' }, 128),
+      layers: [ { drum: 'Bass drum', color: 'bass', pattern: patternFromSteps([14, 16, 30, 32, 46, 48, 56, 60, 64, 78, 80, 83, 86, 88, 112, 118, 124], 128) } ],
+      source: 'class' },
     { id: 'class-pombalense-parta-base-bassdrum', name: 'Pombalense - Part A Base', drum: 'Bass drum', bpm: 120,
       // The same rhythm as the Snare drum version above, seen from the
       // Bass drum player's side: the Bass drum's own hits (the steps shown
