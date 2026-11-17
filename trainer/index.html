@@ -912,6 +912,11 @@
       layers: [ { drum: 'Snare drum', color: 'snare', pattern: patternFromSteps([3, 6, 10, 11, 14, 19, 22, 26, 27, 30, 35, 38, 42, 43, 46], 64) },
                 { drum: 'Tom', color: 'tom', pattern: patternFromSteps([10, 11, 12, 14, 22, 24, 26, 27, 28, 30, 42, 43, 44, 46, 54, 56, 57, 58, 59, 60, 62], 64) } ],
       source: 'class' },
+    { id: 'class-pombalense-bridge-bassdrum', name: 'Pombalense - Bridge', drum: 'Bass drum', bpm: 125,
+      // from the score (8 bars): Bass drum in black, Tom shown faded
+      pattern: patternFromSteps([14, 16, 30, 32, 46, 48, 56, 60, 64, 78, 80, 83, 86, 88, 112, 118, 124], 128),
+      layers: [ { drum: 'Tom', color: 'tom', pattern: patternFromSteps([0, 2, 3, 6, 8, 10, 11, 12, 14, 16, 18, 19, 22, 24, 26, 27, 28, 30, 32, 34, 35, 38, 40, 42, 43, 44, 46, 48, 54, 55, 58, 59, 62, 63, 64, 66, 67, 70, 72, 74, 75, 76, 78, 80, 83, 86, 88, 90, 91, 92, 94, 96, 98, 99, 102, 104, 106, 107, 108, 110, 112, 118, 124], 128) } ],
+      source: 'class' },
     { id: 'class-moonstep-bassdrum', name: 'Moonstep', drum: 'Bass drum', bpm: 100,
       // 4-measure rhythm: the first measure repeats three times, then the
       // fourth measure (ending with a different, syncopated pattern) plays once.
@@ -1893,6 +1898,7 @@ var TOM_B64 = "UklGRg5yAgBXQVZFZm10IBAAAAABAAIARKwAABCxAgAEABAAZGF0YfRtAgA1/Tb9K
     'class-incrivel-partb-bassdrum': 2,
     'class-pombalense-parta-base-bassdrum': 3,
     'class-pombalense-partb-bassdrum': 3,
+    'class-pombalense-bridge-bassdrum': 3,
     // Snare drum
     'class-roll-exercice-0-snare': 1,
     'class-roll-exercice-1-snare': 1,
