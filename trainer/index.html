@@ -890,6 +890,9 @@
       layers: [ { drum: 'Bass drum', color: 'bass', pattern: patternFromSteps([0, 8, 12, 16, 24, 28, 30, 32, 40, 44, 48], 64) },
                 { drum: 'Snare drum', color: 'snare', pattern: patternFromSteps([3, 6, 10, 11, 14, 19, 22, 26, 27, 30, 35, 38, 42, 43, 46], 64) } ],
       source: 'class' },
+    { id: 'class-pombalense-bridge-tom', name: 'Pombalense - Bridge', drum: 'Tom', bpm: 125,
+      // taken from the audio recording (125 BPM, 5 bars); no hands yet
+      pattern: patternFromSteps([0, 6, 7, 8, 10, 12, 14, 15, 16, 18, 19, 22, 24, 26, 27, 28, 30, 32, 35, 40, 42, 44, 48, 50, 51, 54, 56, 58, 59, 60, 62, 64, 70, 76], 80), source: 'class' },
     { id: 'class-pombalense-parta-base-bassdrum', name: 'Pombalense - Part A Base', drum: 'Bass drum', bpm: 120,
       // The same rhythm as the Snare drum version above, seen from the
       // Bass drum player's side: the Bass drum's own hits (the steps shown
@@ -1472,7 +1475,8 @@ var TOM_B64 = "UklGRg5yAgBXQVZFZm10IBAAAAABAAIARKwAABCxAgAEABAAZGF0YfRtAgA1/Tb9K
     if(n <= 1){ lab.hidden = true; return; }
     var b = currentBlock(seqEl);
     lab.hidden = false;
-    lab.innerHTML = '<b>Block ' + (b + 1) + ' of ' + n + '</b> · bars ' + (b * 2 + 1) + '–' + (b * 2 + 2);
+    var bars = Math.ceil(seqEl.children.length / 4), last = Math.min(b * 2 + 2, bars);
+    lab.innerHTML = '<b>Block ' + (b + 1) + ' of ' + n + '</b> · ' + (last > b * 2 + 1 ? 'bars ' + (b * 2 + 1) + '–' + last : 'bar ' + last);
   }
   function scrollToBlock(seqEl, b){
     var starts = blockRowsOf(seqEl); if(!starts[b]) return;
@@ -1907,6 +1911,7 @@ var TOM_B64 = "UklGRg5yAgBXQVZFZm10IBAAAAABAAIARKwAABCxAgAEABAAZGF0YfRtAgA1/Tb9K
     'class-tom-solo-partb-tom': 2,
     'class-pombalense-parta-tom': 3,
     'class-pombalense-partb-tom': 3,
+    'class-pombalense-bridge-tom': 3,
   };
   // Stage flow: drums with stages first show one button per stage; tapping a stage shows its rhythms.
   var STAGE_COUNT = 3;
