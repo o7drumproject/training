@@ -1389,7 +1389,7 @@ var TOM_B64 = "UklGRg5yAgBXQVZFZm10IBAAAAABAAIARKwAABCxAgAEABAAZGF0YfRtAgA1/Tb9K
     // vertical place of each staff; extra room under the rhythm's own staff for the hands
     var staffGap = 62, offs = [], acc = 0;
     parts.forEach(function(part){ offs.push(acc); acc += staffGap + (part.p.main ? 12 : 0); });
-    var sysH = acc + 10, top = 0;
+    var sysH = acc + 10, top = 18;
     var H = top + sysCount * sysH;
     var renderer = new VF.Renderer(scoreViewEl, VF.Renderer.Backends.SVG);
     renderer.resize(Wpx, Math.ceil(H * SC));
