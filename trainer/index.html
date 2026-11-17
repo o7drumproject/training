@@ -871,6 +871,9 @@
       accentPattern: patternFromSteps([0, 3, 12, 16, 19, 28]),
       accentDrum: 'Bass drum',
       source: 'class' },
+    { id: 'class-pombalense-partb-snare', name: 'Pombalense - Part B', drum: 'Snare drum', bpm: 120,
+      // bar 2 repeats bar 1
+      pattern: patternFromHits({ 3:'R', 6:'R', 10:'R', 11:'L', 14:'R', 19:'R', 22:'R', 26:'R', 27:'L', 30:'R' }), source: 'class' },
     { id: 'class-pombalense-parta-base-bassdrum', name: 'Pombalense - Part A Base', drum: 'Bass drum', bpm: 120,
       // The same rhythm as the Snare drum version above, seen from the
       // Bass drum player's side: the Bass drum's own hits (the steps shown
@@ -1863,6 +1866,7 @@ var TOM_B64 = "UklGRg5yAgBXQVZFZm10IBAAAAABAAIARKwAABCxAgAEABAAZGF0YfRtAgA1/Tb9K
     'class-incrivel-parta-snare': 2,
     'class-incrivel-partb-snare': 2,
     'class-pombalense-parta-base-snare': 3,
+    'class-pombalense-partb-snare': 3,
     // Tom
     'class-taratah-tom': 1,
     'class-tara-tah-2bar-tom': 1,
